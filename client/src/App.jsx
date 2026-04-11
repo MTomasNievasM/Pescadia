@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Fish, MapPin, PlusCircle, History } from 'lucide-react'
-import './App.css'
 
 function App() {
   const [serverStatus, setServerStatus] = useState('Checking...')
