@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Frontend
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - pescadia-network
+
+  # Backend
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=pesca_pass
+      - DB_NAME=pescadia
+    depends_on:
+      - db
+    networks:
+      - pescadia-network
+
+  # Database
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pesca_pass
+      - POSTGRES_DB=pescadia
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - pescadia-network
+
+  # Database Admin UI (Optional but helpful)
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - pescadia-network
+
+networks:
+  pescadia-network:
+    driver: bridge
+
+volumes:
+  db-data:
