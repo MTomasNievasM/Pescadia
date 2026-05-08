@@ -3,6 +3,7 @@ import { Fish, MapPin, PlusCircle, History, Home, User, Sun, Moon } from 'lucide
 import MapComponent from './components/MapComponent'
 import MiniMap from './components/MiniMap'
 import NewCatchForm from './components/NewCatchForm'
+import PointDetail from './components/PointDetail'
 import logoDark from './assets/logo_navbar1.png'
 import logoLight from './assets/logo_navbar1_dia.png'
 import L from 'leaflet'
@@ -19,6 +20,7 @@ function App() {
   const [theme, setTheme] = useState('dark')
   const [showNewCatchModal, setShowNewCatchModal] = useState(false)
   const [activeTagFilter, setActiveTagFilter] = useState(null)
+  const [selectedPoint, setSelectedPoint] = useState(null)
 
   useEffect(() => {
     // Restaurar tema guardado o por defecto a oscuro
@@ -70,7 +72,7 @@ function App() {
               <p>¿Qué te pescas?</p>
             </section>
 
-            <MiniMap theme={theme} />
+            <MiniMap theme={theme} onSelectPoint={setSelectedPoint} />
 
             <div className="mobile-grid">
               <button className="mobile-btn primary" onClick={() => setShowNewCatchModal(true)}>
@@ -81,12 +83,13 @@ function App() {
           </div>
         )}
         {activeTab === 'map' && (
-          <MapComponent
-            activeTagFilter={activeTagFilter}
-            clearFilter={() => setActiveTagFilter(null)}
-            onFilterSpecies={(tag) => setActiveTagFilter(tag)}
-            theme={theme}
-          />
+            <MapComponent
+              activeTagFilter={activeTagFilter}
+              clearFilter={() => setActiveTagFilter(null)}
+              onFilterSpecies={(tag) => setActiveTagFilter(tag)}
+              theme={theme}
+              onSelectPoint={setSelectedPoint}
+            />
         )}
         {activeTab !== 'home' && activeTab !== 'map' && (
           <div className="placeholder-view">
@@ -99,6 +102,14 @@ function App() {
           <NewCatchForm
             onClose={() => setShowNewCatchModal(false)}
             onSave={() => setShowNewCatchModal(false)}
+            theme={theme}
+          />
+        )}
+
+        {selectedPoint && (
+          <PointDetail
+            point={selectedPoint}
+            onClose={() => setSelectedPoint(null)}
             theme={theme}
           />
         )}
