@@ -4,6 +4,7 @@ import MapComponent from './components/MapComponent'
 import MiniMap from './components/MiniMap'
 import NewCatchForm from './components/NewCatchForm'
 import HistoryList from './components/HistoryList'
+import Profile from './components/Profile'
 import logoDark from './assets/logo_navbar1.png'
 import logoLight from './assets/logo_navbar1_dia.png'
 import L from 'leaflet'
@@ -92,7 +93,10 @@ function App() {
         {activeTab === 'history' && (
           <HistoryList theme={theme} />
         )}
-        {activeTab !== 'home' && activeTab !== 'map' && activeTab !== 'history' && (
+        {activeTab === 'profile' && (
+          <Profile theme={theme} />
+        )}
+        {activeTab !== 'home' && activeTab !== 'map' && activeTab !== 'history' && activeTab !== 'profile' && (
           <div className="placeholder-view">
             <h2>Próximamente</h2>
             <p>Estamos preparando la sección de {activeTab}...</p>
