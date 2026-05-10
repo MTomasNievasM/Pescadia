@@ -95,6 +95,12 @@ const initDB = async () => {
       )
     `);
 
+    // Asegurar que las columnas existen (por si la tabla ya estaba creada)
+    await pool.query(`
+      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
+      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS display_name TEXT;
+    `);
+
     // Tabla de Capturas (actualizada)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS capturas (
@@ -120,15 +126,15 @@ initDB();
 // Registro
 app.post('/register', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, email, display_name } = req.body;
     
     // Encriptar contraseña
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
     const result = await pool.query(
-      'INSERT INTO usuarios (username, password) VALUES ($1, $2) RETURNING id, username, created_at',
-      [username, hashedPassword]
+      'INSERT INTO usuarios (username, password, email, display_name) VALUES ($1, $2, $3, $4) RETURNING id, username, email, display_name, created_at',
+      [username, hashedPassword, email, display_name]
     );
     res.json(result.rows[0]);
   } catch (err) {

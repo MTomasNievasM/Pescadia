@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { User, Lock, Fish, ArrowRight } from 'lucide-react';
+import { User, Lock, Fish, ArrowRight, Mail } from 'lucide-react';
 
 export default function Auth({ onLogin, theme }) {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +23,7 @@ export default function Auth({ onLogin, theme }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(isLogin ? { username, password } : { username, password, email, display_name: displayName }),
       });
 
       const data = await response.json();
@@ -124,6 +126,59 @@ export default function Auth({ onLogin, theme }) {
               />
             </div>
           </div>
+
+          {!isLogin && (
+            <>
+              <div className="form-group" style={{ textAlign: 'left' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.4rem', display: 'block', color: 'var(--text-color)', opacity: 0.9 }}>NOMBRE DE USUARIO (PARA MOSTRAR)</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={16} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--placeholder-color)' }} />
+                  <input
+                    type="text"
+                    className="tag-input"
+                    placeholder="Tu nombre para mostrar"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    style={{ 
+                      width: '100%', 
+                      boxSizing: 'border-box', 
+                      paddingLeft: '2.5rem',
+                      paddingTop: '0.6rem',
+                      paddingBottom: '0.6rem',
+                      fontSize: '0.9rem',
+                      background: theme === 'dark' ? 'rgba(15, 23, 42, 0.5)' : 'rgba(248, 250, 252, 0.8)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-group" style={{ textAlign: 'left' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.4rem', display: 'block', color: 'var(--text-color)', opacity: 0.9 }}>CORREO ELECTRÓNICO</label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={16} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--placeholder-color)' }} />
+                  <input
+                    type="email"
+                    className="tag-input"
+                    placeholder="Tu correo electrónico"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{ 
+                      width: '100%', 
+                      boxSizing: 'border-box', 
+                      paddingLeft: '2.5rem',
+                      paddingTop: '0.6rem',
+                      paddingBottom: '0.6rem',
+                      fontSize: '0.9rem',
+                      background: theme === 'dark' ? 'rgba(15, 23, 42, 0.5)' : 'rgba(248, 250, 252, 0.8)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="form-group" style={{ textAlign: 'left' }}>
             <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.4rem', display: 'block', color: 'var(--text-color)', opacity: 0.9 }}>CONTRASEÑA</label>

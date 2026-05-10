@@ -9,13 +9,13 @@ export default function Profile({ theme, onLogout }) {
   const [loadingCaptures, setLoadingCaptures] = useState(true);
 
   const [profileData, setProfileData] = useState(() => {
-    const savedUser = localStorage.getItem('pescadia_user');
+    const savedUser = localStorage.getItem('pescadia-user');
     const user = savedUser ? JSON.parse(savedUser) : null;
     return {
       name: user ? user.username : "Usuario",
       username: user ? `@${user.username}` : "@usuario",
       bio: "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200", // Avatar por defecto (hombre)
+      avatar: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&q=80&w=200", // Silueta genérica
       cover: "https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?auto=format&fit=crop&q=80&w=1000"
     };
   });
