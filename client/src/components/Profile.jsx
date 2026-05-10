@@ -264,7 +264,7 @@ export default function Profile({ theme, onLogout }) {
     e.preventDefault();
     
     try {
-      const response = await fetch('/profile', {
+      const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

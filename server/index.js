@@ -30,14 +30,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// Endpoint de salud para el chivato de conexión
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
 
 // Simulador de base de datos en memoria para cuando falle la real
 let memoriaCapturas = [
@@ -130,7 +123,7 @@ initDB();
 // --- RUTAS DE AUTENTICACIÓN ---
 
 // Registro
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   try {
     const { username, password, email, display_name } = req.body;
     
@@ -149,7 +142,7 @@ app.post('/register', async (req, res) => {
 });
 
 // Login (Simplificado sin JWT por ahora)
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
@@ -173,7 +166,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Actualizar perfil
-app.put('/profile', async (req, res) => {
+app.put('/api/profile', async (req, res) => {
   try {
     const { username, bio, avatar, display_name, cover } = req.body;
     
@@ -197,7 +190,7 @@ app.put('/profile', async (req, res) => {
 // --- RUTAS DE CAPTURAS ---
 
 // Subir captura con foto
-app.post('/capturas', upload.single('photo'), async (req, res) => {
+app.post('/api/capturas', upload.single('photo'), async (req, res) => {
   try {
     const { latitude, longitude, rating, tags, user_id } = req.body;
     const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
@@ -231,7 +224,7 @@ app.post('/capturas', upload.single('photo'), async (req, res) => {
 });
 
 // Obtener todas las capturas
-app.get('/capturas', async (req, res) => {
+app.get('/api/capturas', async (req, res) => {
   try {
     try {
       const result = await pool.query(`
@@ -250,7 +243,7 @@ app.get('/capturas', async (req, res) => {
   }
 });
 
-app.get('/health', async (req, res) => {
+app.get('/api/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
     res.json({ status: 'ok', serverTime: result.rows[0].now });
