@@ -17,21 +17,6 @@ export default function Profile({ theme }) {
 
   const [editForm, setEditForm] = useState(profileData);
 
-  const [comments] = useState([
-    {
-      id: 1,
-      text: "¡Qué buena zona de pesca! Ayer estuve por ahí y saqué un par de doradas impresionantes. Recomiendo usar cebo vivo en este punto.",
-      date: "2026-05-07T14:30:00Z",
-      likes: 12
-    },
-    {
-      id: 2,
-      text: "Ojo con la corriente en esta parte, se pone fuerte a partir de las 6 de la tarde. Por lo demás, excelente lugar, muy tranquilo y sin gente.",
-      date: "2026-05-05T09:15:00Z",
-      likes: 5
-    }
-  ]);
-
   // Fotos de ejemplo
   const [photos] = useState([
     "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=400",
@@ -60,13 +45,29 @@ export default function Profile({ theme }) {
       })
       .catch(() => {
         const mockCapturas = [
-          { id: 'm1', species: "Dorada Real", location: "Playa de la Malagueta", rating: 5, tags: ['Dorada', 'Cebo vivo'], date: new Date(Date.now() - 86400000).toISOString(), image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=600" },
-          { id: 'm2', species: "Lubina", location: "Puerto de Benalmádena", rating: 4, tags: ['Lubina', 'Al amanecer'], date: new Date(Date.now() - 86400000 * 3).toISOString(), image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=600" }
+          {
+            id: 'm1', species: "Dorada Real", location: "Playa de la Malagueta", rating: 5, tags: ['Dorada', 'Cebo vivo'], date: new Date(Date.now() - 86400000).toISOString(), image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=600", likes: 12, liked: false, commentsList: [
+              {
+                id: 'c1', author: 'PescadorPro', text: '¡Qué pieza más bonita! ¿Con qué cebo la pillaste?', replies: [
+                  { id: 'r1', author: 'Adriana', text: 'Con cebo vivo, lombriz de mar 🐛' }
+                ]
+              },
+              { id: 'c2', author: 'MarinaAzul', text: 'Esa zona está muy bien para doradas, más aún en mayo 👌', replies: [] },
+              { id: 'c3', author: 'CastingMaster', text: 'Impresionante, yo llevo semanas sin ver una así de grande', replies: [] },
+            ]
+          },
+          {
+            id: 'm2', species: "Lubina", location: "Puerto de Benalmádena", rating: 4, tags: ['Lubina', 'Al amanecer'], date: new Date(Date.now() - 86400000 * 3).toISOString(), image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=600", likes: 8, liked: true, commentsList: [
+              { id: 'c4', author: 'PescadorPro', text: 'Las lubinas al amanecer son otro nivel 🌅', replies: [] },
+            ]
+          },
+          { id: 'm3', species: "Sargo Plateado", location: "Acantilados de Maro", rating: 4, tags: ['Sargo', 'Rockfishing'], date: new Date(Date.now() - 86400000 * 5).toISOString(), image: null, likes: 5, liked: false, commentsList: [] }
         ];
         setCaptures(mockCapturas);
         setLoadingCaptures(false);
       });
   }, []);
+
   const handleImageUpload = (e, field) => {
     const file = e.target.files[0];
     if (file) {
@@ -78,6 +79,192 @@ export default function Profile({ theme }) {
     }
   };
 
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null); // { captureId, commentId }
+  const [replyText, setReplyText] = useState('');
+  const [quickComment, setQuickComment] = useState({});
+  const [expandedCommentReplies, setExpandedCommentReplies] = useState({});
+
+  const toggleLikeCount = (item) => {
+    const likeCount = Number(item.likes || 0);
+    const liked = Boolean(item.liked);
+    return {
+      ...item,
+      liked: !liked,
+      likes: liked ? Math.max(0, likeCount - 1) : likeCount + 1
+    };
+  };
+
+  const publishedComments = captures
+    .flatMap(capture => {
+      const commentsList = capture.commentsList || [];
+
+      const commentItems = commentsList
+        .filter(comment => comment.author === profileData.name)
+        .map(comment => ({
+          key: `comment-${capture.id}-${comment.id}`,
+          type: 'comment',
+          itemId: comment.id,
+          captureId: capture.id,
+          author: comment.author,
+          text: comment.text,
+          date: comment.date || capture.created_at || capture.date || new Date().toISOString(),
+          likes: comment.likes || 0,
+          liked: Boolean(comment.liked),
+          replies: comment.replies || [],
+          captureSpecies: capture.species || 'Nueva Captura'
+        }));
+
+      const replyItems = commentsList.flatMap(comment =>
+        (comment.replies || [])
+          .filter(reply => reply.author === profileData.name)
+          .map(reply => ({
+            key: `reply-${capture.id}-${comment.id}-${reply.id}`,
+            type: 'reply',
+            itemId: reply.id,
+            captureId: capture.id,
+            parentCommentId: comment.id,
+            author: reply.author,
+            text: reply.text,
+            date: reply.date || comment.date || capture.created_at || capture.date || new Date().toISOString(),
+            likes: reply.likes || 0,
+            liked: Boolean(reply.liked),
+            replies: [],
+            captureSpecies: capture.species || 'Nueva Captura',
+            repliedTo: comment.author
+          }))
+      );
+
+      return [...commentItems, ...replyItems];
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const handleProfileCommentLike = (commentItem) => {
+    setCaptures(prevCaptures =>
+      prevCaptures.map(capture => {
+        if (capture.id !== commentItem.captureId) return capture;
+
+        return {
+          ...capture,
+          commentsList: (capture.commentsList || []).map(comment => {
+            if (commentItem.type === 'comment' && comment.id === commentItem.itemId) {
+              return toggleLikeCount(comment);
+            }
+
+            if (commentItem.type === 'reply' && comment.id === commentItem.parentCommentId) {
+              return {
+                ...comment,
+                replies: (comment.replies || []).map(reply =>
+                  reply.id === commentItem.itemId ? toggleLikeCount(reply) : reply
+                )
+              };
+            }
+
+            return comment;
+          })
+        };
+      })
+    );
+  };
+  const handleLike = (id) => {
+    setCaptures(captures.map(c =>
+      c.id === id ? { ...c, liked: !c.liked, likes: c.liked ? c.likes - 1 : c.likes + 1 } : c
+    ));
+  };
+
+  const handleShare = async (capture) => {
+    const shareData = {
+      title: `Pesca de ${capture.species}`,
+      text: `Mira la captura de ${capture.species} en ${capture.location}`,
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('¡Enlace copiado al portapapeles!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
+  const handleAddComment = (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    const newC = { id: Date.now(), author: profileData.name, text: newComment, replies: [] };
+    setCaptures(captures.map(c =>
+      c.id === selectedPost.id ? { ...c, commentsList: [...(c.commentsList || []), newC] } : c
+    ));
+    setSelectedPost(prev => ({ ...prev, commentsList: [...(prev.commentsList || []), newC] }));
+    setNewComment('');
+  };
+
+  const handleQuickComment = (e, captureId) => {
+    e.preventDefault();
+    const text = quickComment[captureId];
+    if (!text?.trim()) return;
+    const newC = { id: Date.now(), author: profileData.name, text, replies: [] };
+    setCaptures(captures.map(cap =>
+      cap.id === captureId ? { ...cap, commentsList: [...(cap.commentsList || []), newC] } : cap
+    ));
+    setQuickComment({ ...quickComment, [captureId]: '' });
+  };
+
+  const handleReply = (captureId, commentId) => {
+    if (!replyText.trim()) return;
+    const newReply = { id: Date.now(), author: profileData.name, text: replyText };
+    const updater = (cap) =>
+      cap.id === captureId ? {
+        ...cap,
+        commentsList: cap.commentsList.map(c =>
+          c.id === commentId ? { ...c, replies: [...(c.replies || []), newReply] } : c
+        )
+      } : cap;
+    setCaptures(captures.map(updater));
+    // También actualizar el selectedPost si está abierto el modal
+    if (selectedPost?.id === captureId) {
+      setSelectedPost(prev => updater(prev));
+    }
+    setReplyText('');
+    setReplyingTo(null);
+  };
+
+  // Cerrar el input de respuesta al hacer click fuera de él
+  useEffect(() => {
+    if (!replyingTo) return;
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('[data-reply-form]')) {
+        setReplyingTo(null);
+        setReplyText('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [replyingTo]);
+
+  // Pez sencillo mirando a la derecha
+  const FishIcon = ({ fill = 'transparent', color = 'currentColor', size = 22 }) => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Cuerpo del pez (elipse) */}
+      <ellipse cx="11" cy="12" rx="7" ry="4.5" fill={fill} stroke={color} />
+      {/* Cola bifurcada a la izquierda */}
+      <path d="M4 12 L1 8 M4 12 L1 16" stroke={color} fill="none" />
+      {/* Ojo */}
+      <circle cx="15" cy="11" r="0.8" fill={color} stroke="none" />
+    </svg>
+  );
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -149,33 +336,75 @@ export default function Profile({ theme }) {
         <div className="tab-content">
           {activeTab === 'comentarios' && (
             <div className="comments-list">
-              {comments.map(comment => (
-                <div key={comment.id} className="comment-card">
-                  <div className="comment-header">
-                    <img
-                      src={profileData.avatar}
-                      alt="Avatar"
-                      className="comment-avatar-small"
-                    />
-                    <div className="comment-meta">
-                      <span className="comment-author">{profileData.name}</span>
-                      <span className="comment-date">{new Date(comment.date).toLocaleDateString()}</span>
+              {publishedComments.length === 0 ? (
+                <div className="history-status">Aún no hay comentarios publicados por este usuario.</div>
+              ) : (
+                publishedComments.map(comment => (
+                  <div key={comment.key} className="comment-card">
+                    <div className="comment-header">
+                      <img
+                        src={profileData.avatar}
+                        alt="Avatar"
+                        className="comment-avatar-small"
+                      />
+                      <div className="comment-meta">
+                        <span className="comment-author">{comment.author}</span>
+                        <span className="comment-date">{new Date(comment.date).toLocaleDateString()} · En {comment.captureSpecies}</span>
+                      </div>
                     </div>
+                    <p className="comment-text">
+                      {comment.type === 'reply' ? `Respuesta a ${comment.repliedTo}: ` : ''}
+                      {comment.text}
+                    </p>
+                    <div className="comment-actions">
+                      <button
+                        className="action-btn"
+                        onClick={() => handleProfileCommentLike(comment)}
+                        style={{ color: comment.liked ? '#38bdf8' : 'inherit' }}
+                      >
+                        <FishIcon fill={comment.liked ? '#38bdf8' : 'transparent'} color={comment.liked ? '#38bdf8' : 'currentColor'} size={22} />
+                        <span>{comment.likes || 0}</span>
+                      </button>
+
+                      {comment.type === 'comment' && comment.replies.length > 0 && (
+                        <button
+                          className="action-btn"
+                          onClick={() =>
+                            setExpandedCommentReplies(prev => ({
+                              ...prev,
+                              [comment.key]: !prev[comment.key]
+                            }))
+                          }
+                        >
+                          <MessageCircle size={16} />
+                          <span>{expandedCommentReplies[comment.key] ? 'Ocultar respuestas' : `Ver respuestas (${comment.replies.length})`}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {comment.type === 'comment' && comment.replies.length > 0 && expandedCommentReplies[comment.key] && (
+                      <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                        {comment.replies.map(reply => (
+                          <div key={reply.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                            <div style={{
+                              width: '24px', height: '24px', borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
+                            }}>
+                              {reply.author.charAt(0).toUpperCase()}
+                            </div>
+                            <div style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
+                              <span style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.35rem' }}>{reply.author}</span>
+                              <span style={{ color: 'var(--placeholder-color)' }}>{reply.text}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="comment-text">{comment.text}</p>
-                  <div className="comment-actions">
-                    <button className="action-btn">
-                      <Heart size={16} /> <span>{comment.likes}</span>
-                    </button>
-                    <button className="action-btn">
-                      <MessageCircle size={16} /> <span>Responder</span>
-                    </button>
-                    <button className="action-btn">
-                      <Share2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
 
@@ -194,18 +423,20 @@ export default function Profile({ theme }) {
                     border: '1px solid var(--border-light)',
                     boxShadow: '0 4px 15px var(--shadow-color)'
                   }}>
-                    {/* Imagen de la publicación */}
-                    <div className="post-image" style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
-                      <img
-                        src={capture.image || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=600"}
-                        alt={capture.species}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
+                    {/* Imagen de la publicación - Condicional */}
+                    {capture.image && (
+                      <div className="post-image" style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
+                        <img
+                          src={capture.image}
+                          alt={capture.species}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
 
                     <div className="post-content" style={{ padding: '1.25rem' }}>
                       <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>{capture.species || "Nueva Captura"}</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>{capture.species || 'Nueva Captura'}</h3>
                         <span style={{ fontSize: '0.8rem', color: 'var(--placeholder-color)' }}>
                           {new Date(capture.created_at || capture.date).toLocaleDateString()}
                         </span>
@@ -213,7 +444,7 @@ export default function Profile({ theme }) {
 
                       <div className="location" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--placeholder-color)' }}>
                         <MapPin size={16} color="#38bdf8" />
-                        <span style={{ fontSize: '0.9rem' }}>{capture.location || "Punto de pesca"}</span>
+                        <span style={{ fontSize: '0.9rem' }}>{capture.location || 'Punto de pesca'}</span>
                       </div>
 
                       <div className="post-actions" style={{
@@ -224,16 +455,155 @@ export default function Profile({ theme }) {
                         borderTop: '1px solid var(--border-light)'
                       }}>
                         <div style={{ display: 'flex', gap: '1.25rem' }}>
-                          <button className="action-btn">
-                            <Heart size={20} /> <span>Me gusta</span>
+                          <button
+                            className="action-btn"
+                            onClick={() => handleLike(capture.id)}
+                            style={{ color: capture.liked ? '#38bdf8' : 'inherit' }}
+                          >
+                            <FishIcon fill={capture.liked ? '#38bdf8' : 'transparent'} color={capture.liked ? '#38bdf8' : 'currentColor'} size={24} />
+                            <span>{capture.likes || 0}</span>
                           </button>
-                          <button className="action-btn">
+
+                          <button
+                            className="action-btn"
+                            onClick={() => setSelectedPost(capture)}
+                          >
+                            <MessageCircle size={20} />
+                            <span>{(capture.commentsList || []).length}</span>
+                          </button>
+
+                          <button
+                            className="action-btn"
+                            onClick={() => handleShare(capture)}
+                          >
                             <Share2 size={20} />
                           </button>
                         </div>
+
                         <button className="action-btn" style={{ color: '#38bdf8', fontWeight: '800' }}>
                           <Eye size={18} style={{ marginRight: '4px' }} /> Ver pesca
                         </button>
+                      </div>
+
+                      {/* Comentarios inline - solo los 2 más recientes + barra de comentario rápido */}
+                      <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {capture.commentsList && capture.commentsList.length > 0 && (
+                          <>
+                            {capture.commentsList.length > 2 && (
+                              <button
+                                className="action-btn"
+                                onClick={() => setSelectedPost(capture)}
+                                style={{ alignSelf: 'flex-start', fontSize: '0.82rem', color: 'var(--placeholder-color)', padding: 0, marginBottom: '0.1rem' }}
+                              >
+                                Ver los {capture.commentsList.length} comentarios
+                              </button>
+                            )}
+                            {capture.commentsList.slice(-2).map(c => (
+                              <div key={c.id}>
+                                {/* Comentario principal */}
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                  <div style={{
+                                    width: '26px', height: '26px', borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
+                                  }}>
+                                    {c.author.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                      <div style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
+                                        <span style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.4rem' }}>{c.author}</span>
+                                        <span style={{ color: 'var(--placeholder-color)' }}>{c.text}</span>
+                                      </div>
+                                      <button
+                                        className="action-btn"
+                                        onClick={() => setReplyingTo(replyingTo?.commentId === c.id ? null : { captureId: capture.id, commentId: c.id })}
+                                        style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: '700', padding: '0.1rem 0.4rem', border: '1px solid #38bdf820', borderRadius: '0.5rem', background: '#38bdf810', flexShrink: 0, marginLeft: '0.5rem' }}
+                                      >
+                                        Responder
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                                {/* Respuestas anidadas */}
+                                {c.replies && c.replies.length > 0 && (
+                                  <div style={{ marginLeft: '2rem', marginTop: '0.35rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                    {c.replies.map(r => (
+                                      <div key={r.id} style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-start' }}>
+                                        <div style={{
+                                          width: '20px', height: '20px', borderRadius: '50%',
+                                          background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                          fontSize: '0.55rem', fontWeight: '700', color: '#fff', flexShrink: 0
+                                        }}>
+                                          {r.author.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div style={{ fontSize: '0.78rem', lineHeight: '1.4' }}>
+                                          <span style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.35rem' }}>{r.author}</span>
+                                          <span style={{ color: 'var(--placeholder-color)' }}>{r.text}</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {/* Input de respuesta */}
+                                {replyingTo?.commentId === c.id && (
+                                  <div data-reply-form style={{ marginLeft: '2rem', marginTop: '0.4rem', display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                                    <input
+                                      type="text"
+                                      className="tag-input"
+                                      placeholder={`Responder a ${c.author}...`}
+                                      value={replyText}
+                                      onChange={e => setReplyText(e.target.value)}
+                                      onKeyDown={e => e.key === 'Enter' && handleReply(capture.id, c.id)}
+                                      style={{ flex: 1, padding: '0.35rem 0.6rem', fontSize: '0.8rem', borderRadius: '1rem' }}
+                                      autoFocus
+                                    />
+                                    <button
+                                      className="submit-btn"
+                                      onClick={() => handleReply(capture.id, c.id)}
+                                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem', margin: 0, borderRadius: '1rem' }}
+                                    >
+                                      Enviar
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        {/* Barra de comentario rápido */}
+                        <form
+                          onSubmit={e => handleQuickComment(e, capture.id)}
+                          style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.35rem' }}
+                        >
+                          <div style={{
+                            width: '26px', height: '26px', borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
+                          }}>
+                            {profileData.name.charAt(0).toUpperCase()}
+                          </div>
+                          <input
+                            type="text"
+                            className="tag-input"
+                            placeholder="Añade un comentario..."
+                            value={quickComment[capture.id] || ''}
+                            onChange={e => setQuickComment({ ...quickComment, [capture.id]: e.target.value })}
+                            style={{ flex: 1, padding: '0.35rem 0.75rem', fontSize: '0.82rem', borderRadius: '1rem' }}
+                          />
+                          {quickComment[capture.id]?.trim() && (
+                            <button
+                              type="submit"
+                              className="action-btn"
+                              style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.82rem', padding: 0 }}
+                            >
+                              Publicar
+                            </button>
+                          )}
+                        </form>
                       </div>
                     </div>
                   </div>
@@ -253,6 +623,111 @@ export default function Profile({ theme }) {
           )}
         </div>
       </div>
+
+      {/* Modal de Comentarios */}
+      {selectedPost && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-edit-modal" style={{ maxWidth: '400px' }}>
+            <button className="modal-close" onClick={() => setSelectedPost(null)}>
+              <X size={24} />
+            </button>
+            <h3 style={{ marginBottom: '1rem' }}>Comentarios - {selectedPost.species}</h3>
+
+            <div className="comments-section" style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {selectedPost.commentsList && selectedPost.commentsList.length > 0 ? (
+                selectedPost.commentsList.map(c => (
+                  <div key={c.id}>
+                    {/* Comentario principal */}
+                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+                      <div style={{
+                        width: '34px', height: '34px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.7rem', fontWeight: '700', color: '#fff', flexShrink: 0
+                      }}>
+                        {c.author.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ background: 'var(--btn-bg)', borderRadius: '0.75rem', padding: '0.5rem 0.75rem', flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                          <div>
+                            <span style={{ fontWeight: '700', color: 'var(--text-color)', fontSize: '0.85rem', display: 'block', marginBottom: '0.2rem' }}>{c.author}</span>
+                            <span style={{ color: 'var(--placeholder-color)', fontSize: '0.85rem' }}>{c.text}</span>
+                          </div>
+                          <button
+                            className="action-btn"
+                            onClick={() => setReplyingTo(replyingTo?.commentId === c.id ? null : { captureId: selectedPost.id, commentId: c.id })}
+                            style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: '700', padding: '0.15rem 0.5rem', border: '1px solid #38bdf830', borderRadius: '0.5rem', background: '#38bdf815', flexShrink: 0, whiteSpace: 'nowrap' }}
+                          >
+                            Responder
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Respuestas anidadas */}
+                    {c.replies && c.replies.length > 0 && (
+                      <div style={{ marginLeft: '2.5rem', marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                        {c.replies.map(r => (
+                          <div key={r.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                            <div style={{
+                              width: '26px', height: '26px', borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
+                            }}>
+                              {r.author.charAt(0).toUpperCase()}
+                            </div>
+                            <div style={{ background: 'var(--btn-bg)', borderRadius: '0.75rem', padding: '0.4rem 0.65rem', flex: 1 }}>
+                              <span style={{ fontWeight: '700', color: 'var(--text-color)', fontSize: '0.8rem', display: 'block', marginBottom: '0.1rem' }}>{r.author}</span>
+                              <span style={{ color: 'var(--placeholder-color)', fontSize: '0.8rem' }}>{r.text}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Input de respuesta en modal */}
+                    {replyingTo?.commentId === c.id && (
+                      <div data-reply-form style={{ marginLeft: '2.5rem', marginTop: '0.4rem', display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          className="tag-input"
+                          placeholder={`Responder a ${c.author}...`}
+                          value={replyText}
+                          onChange={e => setReplyText(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleReply(selectedPost.id, c.id)}
+                          style={{ flex: 1, padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: '1rem' }}
+                          autoFocus
+                        />
+                        <button
+                          className="submit-btn"
+                          onClick={() => handleReply(selectedPost.id, c.id)}
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem', margin: 0, borderRadius: '1rem' }}
+                        >
+                          Enviar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p style={{ color: 'var(--placeholder-color)', fontSize: '0.9rem', textAlign: 'center', padding: '1rem 0' }}>
+                  Aún no hay comentarios. ¡Sé el primero!
+                </p>
+              )}
+            </div>
+
+            <form onSubmit={handleAddComment}>
+              <textarea
+                className="tag-input"
+                placeholder="Escribe un comentario..."
+                style={{ width: '100%', boxSizing: 'border-box', minHeight: '80px', marginBottom: '1rem', padding: '1rem' }}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              ></textarea>
+              <button type="submit" className="submit-btn" style={{ margin: 0, width: '100%' }}>Publicar Comentario</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Edición de Perfil */}
       {isEditing && (
