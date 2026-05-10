@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye, Settings, LogOut } from 'lucide-react';
+import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye, Settings, LogOut, User } from 'lucide-react';
 
 export default function Profile({ theme, onLogout }) {
   const [activeTab, setActiveTab] = useState('capturas');
@@ -12,11 +12,11 @@ export default function Profile({ theme, onLogout }) {
     const savedUser = localStorage.getItem('pescadia-user');
     const user = savedUser ? JSON.parse(savedUser) : null;
     return {
-      name: user ? user.username : "Usuario",
+      name: user ? user.display_name || user.username : "Usuario",
       username: user ? `@${user.username}` : "@usuario",
-      bio: "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
-      avatar: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&q=80&w=200", // Silueta genérica
-      cover: "https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?auto=format&fit=crop&q=80&w=1000"
+      bio: user ? user.bio || "¡Hola! Soy nuevo en Pescadia. 🌊🎣" : "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
+      avatar: user ? user.avatar || "" : "", 
+      cover: ""
     };
   });
 
@@ -306,17 +306,25 @@ export default function Profile({ theme, onLogout }) {
     <div className="profile-view">
       <div className="profile-header">
         <div className="profile-cover">
-          <img
-            src={profileData.cover}
-            alt="Fondo de perfil"
-          />
+          {profileData.cover ? (
+            <img
+              src={profileData.cover}
+              alt="Fondo de perfil"
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #0f172a, #1e293b)' }} />
+          )}
         </div>
         <div className="profile-info-container">
-          <div className="profile-avatar">
-            <img
-              src={profileData.avatar}
-              alt={`Avatar de ${profileData.name}`}
-            />
+          <div className="profile-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#cbd5e1' }}>
+            {profileData.avatar ? (
+              <img
+                src={profileData.avatar}
+                alt={`Avatar de ${profileData.name}`}
+              />
+            ) : (
+              <User size={48} style={{ color: '#64748b' }} />
+            )}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Editar Perfil</button>
@@ -348,11 +356,11 @@ export default function Profile({ theme, onLogout }) {
               <span className="stat-label">Capturas</span>
             </div>
             <div className="stat-item">
-              <span className="stat-value">1.2k</span>
+              <span className="stat-value">0</span>
               <span className="stat-label">Seguidores</span>
             </div>
             <div className="stat-item">
-              <span className="stat-value">340</span>
+              <span className="stat-value">0</span>
               <span className="stat-label">Siguiendo</span>
             </div>
           </div>
