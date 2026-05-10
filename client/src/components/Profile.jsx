@@ -273,7 +273,8 @@ export default function Profile({ theme, onLogout }) {
           username: profileData.username.replace('@', ''), // Quitamos el @ para el servidor
           bio: editForm.bio,
           avatar: editForm.avatar,
-          display_name: editForm.name
+          display_name: editForm.name,
+          cover: editForm.cover
         }),
       });
 
@@ -294,7 +295,8 @@ export default function Profile({ theme, onLogout }) {
           ...user, 
           bio: editForm.bio, 
           avatar: editForm.avatar, 
-          display_name: editForm.name 
+          display_name: editForm.name,
+          cover: editForm.cover
         }));
       }
     } catch (err) {

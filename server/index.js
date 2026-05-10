@@ -102,6 +102,7 @@ const initDB = async () => {
         display_name TEXT,
         avatar TEXT,
         bio TEXT,
+        cover TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
@@ -174,11 +175,11 @@ app.post('/login', async (req, res) => {
 // Actualizar perfil
 app.put('/profile', async (req, res) => {
   try {
-    const { username, bio, avatar, display_name } = req.body;
+    const { username, bio, avatar, display_name, cover } = req.body;
     
     const result = await pool.query(
-      'UPDATE usuarios SET bio = $1, avatar = $2, display_name = $3 WHERE username = $4 RETURNING id, username, email, display_name, bio, avatar',
-      [bio, avatar, display_name, username]
+      'UPDATE usuarios SET bio = $1, avatar = $2, display_name = $3, cover = $4 WHERE username = $5 RETURNING id, username, email, display_name, bio, avatar, cover',
+      [bio, avatar, display_name, cover, username]
     );
     
     if (result.rows.length === 0) {
@@ -190,6 +191,8 @@ app.put('/profile', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 // --- RUTAS DE CAPTURAS ---
 
