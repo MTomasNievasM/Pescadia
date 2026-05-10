@@ -22,6 +22,15 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
+// Endpoint de salud para el chivato de conexión
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // Simulador de base de datos en memoria para cuando falle la real
 let memoriaCapturas = [
   {

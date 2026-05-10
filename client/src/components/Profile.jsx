@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye } from 'lucide-react';
+import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye, Settings, LogOut } from 'lucide-react';
 
-export default function Profile({ theme }) {
+export default function Profile({ theme, onLogout }) {
   const [activeTab, setActiveTab] = useState('capturas');
   const [isEditing, setIsEditing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [captures, setCaptures] = useState([]);
   const [loadingCaptures, setLoadingCaptures] = useState(true);
 
@@ -288,7 +289,25 @@ export default function Profile({ theme }) {
               alt={`Avatar de ${profileData.name}`}
             />
           </div>
-          <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Editar Perfil</button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Editar Perfil</button>
+            <button 
+              className="action-btn" 
+              onClick={() => setShowSettings(true)}
+              style={{ 
+                background: 'var(--btn-bg)', 
+                border: '1px solid var(--border-light)', 
+                borderRadius: '0.75rem', 
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="Ajustes"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
         </div>
         <div className="profile-details">
           <h2>{profileData.name}</h2>
@@ -802,8 +821,37 @@ export default function Profile({ theme }) {
                   </label>
                 </div>
               </div>
-              <button type="submit" className="submit-btn">Guardar Cambios</button>
-            </form>
+        </div>
+      )}
+
+      {/* Modal de Ajustes */}
+      {showSettings && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-edit-modal" style={{ maxWidth: '300px' }}>
+            <button className="modal-close" onClick={() => setShowSettings(false)}>
+              <X size={24} />
+            </button>
+            <h3 style={{ marginBottom: '1.5rem' }}>Ajustes</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button 
+                className="action-btn" 
+                style={{ 
+                  justifyContent: 'flex-start', 
+                  padding: '0.75rem', 
+                  borderRadius: '0.75rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444'
+                }}
+                onClick={() => {
+                  setShowSettings(false);
+                  onLogout();
+                }}
+              >
+                <LogOut size={18} />
+                <span style={{ fontWeight: '700' }}>Cerrar Sesión</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

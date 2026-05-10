@@ -6,6 +6,7 @@ import NewCatchForm from './components/NewCatchForm'
 import PointDetail from './components/PointDetail'
 import HistoryList from './components/HistoryList'
 import Profile from './components/Profile'
+import Auth from './components/Auth'
 import logoDark from './assets/logo_navbar1.png'
 import logoLight from './assets/logo_navbar1_dia.png'
 import L from 'leaflet'
@@ -23,12 +24,19 @@ function App() {
   const [showNewCatchModal, setShowNewCatchModal] = useState(false)
   const [activeTagFilter, setActiveTagFilter] = useState(null)
   const [selectedPoint, setSelectedPoint] = useState(null)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     // Restaurar tema guardado o por defecto a oscuro
     const savedTheme = localStorage.getItem('pescadia-theme') || 'dark';
     setTheme(savedTheme);
     document.body.className = savedTheme + '-theme';
+
+    // Restaurar usuario guardado
+    const savedUser = localStorage.getItem('pescadia-user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
 
     fetch('/api/health')
       .then(res => res.json())
@@ -67,59 +75,69 @@ function App() {
       </header>
 
       <main className="content-area">
-        {activeTab === 'home' && (
-          <div className="home-view">
-            <section className="welcome-banner">
-              <h2>¡Hola, Pescador!</h2>
-              <p>¿Qué te pescas?</p>
-            </section>
+        {!user ? (
+          <Auth onLogin={setUser} theme={theme} />
+        ) : (
+          <>
+            {activeTab === 'home' && (
+              <div className="home-view">
+                <section className="welcome-banner">
+                  <h2>¡Hola, {user.username}!</h2>
+                  <p>¿Qué te pescas?</p>
+                </section>
 
-            <MiniMap theme={theme} onSelectPoint={setSelectedPoint} />
+                <MiniMap theme={theme} onSelectPoint={setSelectedPoint} />
 
-            <div className="mobile-grid">
-              <button className="mobile-btn primary" onClick={() => setShowNewCatchModal(true)}>
-                <PlusCircle size={24} />
-                <span>Nueva Captura</span>
-              </button>
-            </div>
-          </div>
-        )}
-        {activeTab === 'map' && (
-            <MapComponent
-              activeTagFilter={activeTagFilter}
-              clearFilter={() => setActiveTagFilter(null)}
-              onFilterSpecies={(tag) => setActiveTagFilter(tag)}
-              theme={theme}
-              onSelectPoint={setSelectedPoint}
-            />
-        )}
-        {activeTab === 'history' && (
-          <HistoryList theme={theme} />
-        )}
-        {activeTab === 'profile' && (
-          <Profile theme={theme} />
-        )}
-        {activeTab !== 'home' && activeTab !== 'map' && activeTab !== 'history' && activeTab !== 'profile' && (
-          <div className="placeholder-view">
-            <h2>Próximamente</h2>
-            <p>Estamos preparando la sección de {activeTab}...</p>
-          </div>
-        )}
+                <div className="mobile-grid">
+                  <button className="mobile-btn primary" onClick={() => setShowNewCatchModal(true)}>
+                    <PlusCircle size={24} />
+                    <span>Nueva Captura</span>
+                  </button>
+                </div>
+              </div>
+            )}
+            {activeTab === 'map' && (
+                <MapComponent
+                  activeTagFilter={activeTagFilter}
+                  clearFilter={() => setActiveTagFilter(null)}
+                  onFilterSpecies={(tag) => setActiveTagFilter(tag)}
+                  theme={theme}
+                  onSelectPoint={setSelectedPoint}
+                />
+            )}
+            {activeTab === 'history' && (
+              <HistoryList theme={theme} />
+            )}
+            {activeTab === 'profile' && (
+              <Profile theme={theme} onLogout={() => {
+                localStorage.removeItem('pescadia-user');
+                setUser(null);
+                setActiveTab('home');
+              }} />
+            )}
+            {activeTab !== 'home' && activeTab !== 'map' && activeTab !== 'history' && activeTab !== 'profile' && (
+              <div className="placeholder-view">
+                <h2>Próximamente</h2>
+                <p>Estamos preparando la sección de {activeTab}...</p>
+              </div>
+            )}
 
-        {showNewCatchModal && (
-          <NewCatchForm
-            onClose={() => setShowNewCatchModal(false)}
-            onSave={() => setShowNewCatchModal(false)}
-            theme={theme}
-          />
-        )}
+            {showNewCatchModal && (
+              <NewCatchForm
+                onClose={() => setShowNewCatchModal(false)}
+                onSave={() => setShowNewCatchModal(false)}
+                theme={theme}
+              />
+            )}
 
-        {selectedPoint && (
-          <PointDetail
-            point={selectedPoint}
-            onClose={() => setSelectedPoint(null)}
-            theme={theme}
-          />
+            {selectedPoint && (
+              <PointDetail
+                point={selectedPoint}
+                onClose={() => setSelectedPoint(null)}
+                theme={theme}
+              />
+            )}
+          </>
         )}
       </main>
 
