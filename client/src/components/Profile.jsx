@@ -820,7 +820,9 @@ export default function Profile({ theme, onLogout }) {
                     />
                   </label>
                 </div>
-              </div>
+              <button type="submit" className="submit-btn">Guardar Cambios</button>
+            </form>
+          </div>
         </div>
       )}
 
