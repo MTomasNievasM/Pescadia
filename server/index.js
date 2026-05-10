@@ -86,19 +86,24 @@ const pool = new Pool({
 const initDB = async () => {
   try {
     // Tabla de Usuarios
+    // Borrar tablas existentes para empezar de cero (Opción B)
+    await pool.query(`
+      DROP TABLE IF EXISTS capturas CASCADE;
+      DROP TABLE IF EXISTS usuarios CASCADE;
+    `);
+
+    // Tabla de Usuarios
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        email TEXT UNIQUE,
+        display_name TEXT,
+        avatar TEXT,
+        bio TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       )
-    `);
-
-    // Asegurar que las columnas existen (por si la tabla ya estaba creada)
-    await pool.query(`
-      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
-      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS display_name TEXT;
     `);
 
     // Tabla de Capturas (actualizada)
@@ -147,7 +152,7 @@ app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    const result = await pool.query('SELECT * FROM usuarios WHERE username = $1', [username]);
+    const result = await pool.query('SELECT * FROM usuarios WHERE username = $1 OR email = $1', [username]);
     
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Usuario no encontrado' });
@@ -160,7 +165,27 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Contraseña incorrecta' });
     }
     
-    res.json({ id: user.id, username: user.username });
+    res.json({ id: user.id, username: user.username, email: user.email, display_name: user.display_name, bio: user.bio, avatar: user.avatar });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Actualizar perfil
+app.put('/profile', async (req, res) => {
+  try {
+    const { username, bio, avatar, display_name } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE usuarios SET bio = $1, avatar = $2, display_name = $3 WHERE username = $4 RETURNING id, username, email, display_name, bio, avatar',
+      [bio, avatar, display_name, username]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

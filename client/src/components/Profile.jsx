@@ -49,7 +49,25 @@ export default function Profile({ theme, onLogout }) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setEditForm({ ...editForm, [field]: reader.result });
+        // Crear una imagen para poder redimensionarla en un canvas
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 400; // Redimensionamos a un máximo de 400px de ancho
+          const scaleSize = MAX_WIDTH / img.width;
+          
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // Convertimos a JPEG con un 70% de calidad para que no pese nada
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          
+          setEditForm({ ...editForm, [field]: compressedBase64 });
+        };
       };
       reader.readAsDataURL(file);
     }
@@ -242,10 +260,46 @@ export default function Profile({ theme, onLogout }) {
     </svg>
   );
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setProfileData(editForm);
-    setIsEditing(false);
+    
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: profileData.username.replace('@', ''), // Quitamos el @ para el servidor
+          bio: editForm.bio,
+          avatar: editForm.avatar,
+          display_name: editForm.name
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Algo salió mal');
+      }
+
+      setProfileData(editForm);
+      setIsEditing(false);
+      
+      // Actualizamos también el localStorage para que persista al recargar
+      const savedUser = localStorage.getItem('pescadia-user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        localStorage.setItem('pescadia-user', JSON.stringify({ 
+          ...user, 
+          bio: editForm.bio, 
+          avatar: editForm.avatar, 
+          display_name: editForm.name 
+        }));
+      }
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (

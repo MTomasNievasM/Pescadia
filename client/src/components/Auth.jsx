@@ -7,6 +7,7 @@ export default function Auth({ onLogin, theme }) {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -14,6 +15,12 @@ export default function Auth({ onLogin, theme }) {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (!isLogin && password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      setLoading(false);
+      return;
+    }
 
     const endpoint = isLogin ? '/api/login' : '/api/register';
 
@@ -103,13 +110,13 @@ export default function Auth({ onLogin, theme }) {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="form-group" style={{ textAlign: 'left' }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.4rem', display: 'block', color: 'var(--text-color)', opacity: 0.9 }}>USUARIO</label>
+            <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.4rem', display: 'block', color: 'var(--text-color)', opacity: 0.9 }}>{isLogin ? 'USUARIO O CORREO' : 'NOMBRE DE CUENTA (@)'}</label>
             <div style={{ position: 'relative' }}>
               <User size={16} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--placeholder-color)' }} />
               <input
                 type="text"
                 className="tag-input"
-                placeholder="Tu nombre de usuario"
+                placeholder={isLogin ? "Tu usuario o correo" : "Tu handle (ej: Tomas)"}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 style={{ 
@@ -204,6 +211,33 @@ export default function Auth({ onLogin, theme }) {
               />
             </div>
           </div>
+
+          {!isLogin && (
+            <div className="form-group" style={{ textAlign: 'left' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.4rem', display: 'block', color: 'var(--text-color)', opacity: 0.9 }}>CONFIRMAR CONTRASEÑA</label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={16} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--placeholder-color)' }} />
+                <input
+                  type="password"
+                  className="tag-input"
+                  placeholder="Confirma tu contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    boxSizing: 'border-box', 
+                    paddingLeft: '2.5rem',
+                    paddingTop: '0.6rem',
+                    paddingBottom: '0.6rem',
+                    fontSize: '0.9rem',
+                    background: theme === 'dark' ? 'rgba(15, 23, 42, 0.5)' : 'rgba(248, 250, 252, 0.8)',
+                    border: '1px solid var(--border-light)'
+                  }}
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"
