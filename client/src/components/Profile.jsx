@@ -8,12 +8,16 @@ export default function Profile({ theme, onLogout }) {
   const [captures, setCaptures] = useState([]);
   const [loadingCaptures, setLoadingCaptures] = useState(true);
 
-  const [profileData, setProfileData] = useState({
-    name: "Adriana",
-    username: "@adriana_pesca",
-    bio: "Amante del mar y la pesca deportiva. 🌊🎣 Siempre buscando la próxima gran captura y explorando nuevas costas.",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
-    cover: "https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?auto=format&fit=crop&q=80&w=1000"
+  const [profileData, setProfileData] = useState(() => {
+    const savedUser = localStorage.getItem('pescadia_user');
+    const user = savedUser ? JSON.parse(savedUser) : null;
+    return {
+      name: user ? user.username : "Usuario",
+      username: user ? `@${user.username}` : "@usuario",
+      bio: "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200", // Avatar por defecto (hombre)
+      cover: "https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?auto=format&fit=crop&q=80&w=1000"
+    };
   });
 
   const [editForm, setEditForm] = useState(profileData);
@@ -30,41 +34,12 @@ export default function Profile({ theme, onLogout }) {
     fetch('/api/capturas')
       .then(res => res.json())
       .then(data => {
-        // Añadimos algunas capturas de prueba si la base de datos está vacía para que no se vea vacío
-        const mockCapturas = [
-          { id: 'm1', latitude: 36.72016, longitude: -4.42034, rating: 5, tags: ['Dorada', 'Cebo vivo'], created_at: new Date(Date.now() - 86400000).toISOString() },
-          { id: 'm2', latitude: 36.52016, longitude: -4.32034, rating: 4, tags: ['Lubina', 'Al amanecer'], created_at: new Date(Date.now() - 86400000 * 3).toISOString() },
-          { id: 'm3', latitude: 36.62016, longitude: -4.52034, rating: 3, tags: ['Sargo'], created_at: new Date(Date.now() - 86400000 * 7).toISOString() }
-        ];
-
-        if (data.length === 0) {
-          setCaptures(mockCapturas);
-        } else {
-          setCaptures([...data, ...mockCapturas]);
-        }
+        // No añadimos capturas de prueba para empezar de cero
+        setCaptures(data);
         setLoadingCaptures(false);
       })
       .catch(() => {
-        const mockCapturas = [
-          {
-            id: 'm1', species: "Dorada Real", location: "Playa de la Malagueta", rating: 5, tags: ['Dorada', 'Cebo vivo'], date: new Date(Date.now() - 86400000).toISOString(), image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=600", likes: 12, liked: false, commentsList: [
-              {
-                id: 'c1', author: 'PescadorPro', text: '¡Qué pieza más bonita! ¿Con qué cebo la pillaste?', replies: [
-                  { id: 'r1', author: 'Adriana', text: 'Con cebo vivo, lombriz de mar 🐛' }
-                ]
-              },
-              { id: 'c2', author: 'MarinaAzul', text: 'Esa zona está muy bien para doradas, más aún en mayo 👌', replies: [] },
-              { id: 'c3', author: 'CastingMaster', text: 'Impresionante, yo llevo semanas sin ver una así de grande', replies: [] },
-            ]
-          },
-          {
-            id: 'm2', species: "Lubina", location: "Puerto de Benalmádena", rating: 4, tags: ['Lubina', 'Al amanecer'], date: new Date(Date.now() - 86400000 * 3).toISOString(), image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=600", likes: 8, liked: true, commentsList: [
-              { id: 'c4', author: 'PescadorPro', text: 'Las lubinas al amanecer son otro nivel 🌅', replies: [] },
-            ]
-          },
-          { id: 'm3', species: "Sargo Plateado", location: "Acantilados de Maro", rating: 4, tags: ['Sargo', 'Rockfishing'], date: new Date(Date.now() - 86400000 * 5).toISOString(), image: null, likes: 5, liked: false, commentsList: [] }
-        ];
-        setCaptures(mockCapturas);
+        setCaptures([]);
         setLoadingCaptures(false);
       });
   }, []);

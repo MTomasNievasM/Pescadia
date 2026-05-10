@@ -5,50 +5,15 @@ export default function HistoryList({ theme }) {
   const [captures, setCaptures] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const mockCaptures = [
-    {
-      id: 1,
-      species: "Dorada Real",
-      location: "Playa de la Malagueta, Málaga",
-      date: "2026-05-09T10:00:00Z",
-      rating: 5,
-      tags: ["Dorada", "Cebo de Playa"],
-      image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=400"
-    },
-    {
-      id: 2,
-      species: "Lubina",
-      location: "Puerto de Benalmádena",
-      date: "2026-05-08T07:30:00Z",
-      rating: 4,
-      tags: ["Lubina", "Al amanecer"],
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400"
-    },
-    {
-      id: 3,
-      species: "Sargo",
-      location: "Acantilados de Maro",
-      date: "2026-05-05T18:45:00Z",
-      rating: 4,
-      tags: ["Sargo", "Rockfishing"],
-      image: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&q=80&w=400"
-    }
-  ];
-
   useEffect(() => {
     fetch('/api/capturas')
       .then(res => res.json())
       .then(data => {
-        if (data.length === 0) {
-          setCaptures(mockCaptures);
-        } else {
-          setCaptures([...data, ...mockCaptures]);
-        }
+        setCaptures(data);
         setLoading(false);
       })
       .catch(() => {
-        // Fallback a mock data si falla la conexión (útil en dev)
-        setCaptures(mockCaptures);
+        setCaptures([]);
         setLoading(false);
       });
   }, []);
