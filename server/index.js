@@ -108,6 +108,17 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    // Tabla de Seguidores
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS seguidores (
+        id SERIAL PRIMARY KEY,
+        seguidor_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        seguido_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(seguidor_id, seguido_id)
+      )
+    `);
     console.log('Tablas verificadas/creadas correctamente.');
   } catch (err) {
     console.error('Error al inicializar la base de datos (No te preocupes, usaré la memoria):');
@@ -174,6 +185,93 @@ app.put('/api/profile', async (req, res) => {
     }
     
     res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtener perfil público de un usuario y sus stats
+app.get('/api/users/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { current_user_id } = req.query; 
+    
+    const userResult = await pool.query(
+      'SELECT id, username, display_name, bio, avatar, cover, created_at FROM usuarios WHERE username = $1',
+      [username]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    const targetUser = userResult.rows[0];
+    
+    const followersResult = await pool.query('SELECT COUNT(*) FROM seguidores WHERE seguido_id = $1', [targetUser.id]);
+    const followersCount = parseInt(followersResult.rows[0].count);
+    
+    const followingResult = await pool.query('SELECT COUNT(*) FROM seguidores WHERE seguidor_id = $1', [targetUser.id]);
+    const followingCount = parseInt(followingResult.rows[0].count);
+    
+    const capturesResult = await pool.query('SELECT COUNT(*) FROM capturas WHERE user_id = $1', [targetUser.id]);
+    const capturesCount = parseInt(capturesResult.rows[0].count);
+    
+    let isFollowing = false;
+    if (current_user_id) {
+      const followCheck = await pool.query(
+        'SELECT 1 FROM seguidores WHERE seguidor_id = $1 AND seguido_id = $2',
+        [current_user_id, targetUser.id]
+      );
+      isFollowing = followCheck.rows.length > 0;
+    }
+    
+    res.json({
+      ...targetUser,
+      followersCount,
+      followingCount,
+      capturesCount,
+      isFollowing
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Seguir / Dejar de seguir
+app.post('/api/users/:username/follow', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { current_user_id } = req.body; 
+    
+    if (!current_user_id) {
+      return res.status(400).json({ error: 'Se requiere ID de usuario' });
+    }
+    
+    const targetResult = await pool.query('SELECT id FROM usuarios WHERE username = $1', [username]);
+    if (targetResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario a seguir no encontrado' });
+    }
+    const targetUserId = targetResult.rows[0].id;
+    
+    if (current_user_id === targetUserId) {
+      return res.status(400).json({ error: 'No puedes seguirte a ti mismo' });
+    }
+    
+    const checkResult = await pool.query(
+      'SELECT id FROM seguidores WHERE seguidor_id = $1 AND seguido_id = $2',
+      [current_user_id, targetUserId]
+    );
+    
+    if (checkResult.rows.length > 0) {
+      await pool.query('DELETE FROM seguidores WHERE id = $1', [checkResult.rows[0].id]);
+      res.json({ isFollowing: false, message: 'Has dejado de seguir a este usuario' });
+    } else {
+      await pool.query(
+        'INSERT INTO seguidores (seguidor_id, seguido_id) VALUES ($1, $2)',
+        [current_user_id, targetUserId]
+      );
+      res.json({ isFollowing: true, message: 'Ahora sigues a este usuario' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
