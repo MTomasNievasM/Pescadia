@@ -153,8 +153,7 @@ app.post('/api/login', async (req, res) => {
     if (!validPassword) {
       return res.status(400).json({ error: 'Contraseña incorrecta' });
     }
-    
-    res.json({ id: user.id, username: user.username, email: user.email, display_name: user.display_name, bio: user.bio, avatar: user.avatar });
+    res.json({ id: user.id, username: user.username, email: user.email, display_name: user.display_name, bio: user.bio, avatar: user.avatar, cover: user.cover });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
