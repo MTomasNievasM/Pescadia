@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, MapPin, Calendar, Tag, Fish, Eye } from 'lucide-react';
 
-export default function HistoryList({ theme }) {
+export default function HistoryList({ theme, onNavigateToProfile }) {
   const [captures, setCaptures] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,6 +80,24 @@ export default function HistoryList({ theme }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--placeholder-color)', fontSize: '0.85rem' }}>
                 <MapPin size={14} color="#38bdf8" />
                 <span className="truncate">{capture.location || "Coordinadas guardadas"}</span>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--placeholder-color)' }}>Por:</span>
+                <button 
+                  onClick={() => capture.username && onNavigateToProfile(capture.username)}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    padding: 0, 
+                    color: '#38bdf8', 
+                    fontWeight: 'bold', 
+                    cursor: capture.username ? 'pointer' : 'default',
+                    textDecoration: capture.username ? 'underline' : 'none'
+                  }}
+                >
+                  {capture.username ? `@${capture.username}` : 'Anónimo'}
+                </button>
               </div>
 
               <div style={{ marginTop: '0.25rem' }}>

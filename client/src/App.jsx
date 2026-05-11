@@ -20,6 +20,7 @@ import './index.css'
 function App() {
   const [serverStatus, setServerStatus] = useState('Checking...')
   const [activeTab, setActiveTab] = useState('home')
+  const [viewingProfile, setViewingProfile] = useState(null)
   const [theme, setTheme] = useState('dark')
   const [showNewCatchModal, setShowNewCatchModal] = useState(false)
   const [activeTagFilter, setActiveTagFilter] = useState(null)
@@ -50,6 +51,12 @@ function App() {
     localStorage.setItem('pescadia-theme', newTheme);
     document.body.className = newTheme + '-theme';
   }
+
+  // Función para navegar al perfil de cualquier usuario
+  const navigateToProfile = (username) => {
+    setViewingProfile(username);
+    setActiveTab('profile');
+  };
 
   return (
     <div className="app-container">
@@ -106,14 +113,19 @@ function App() {
                 />
             )}
             {activeTab === 'history' && (
-              <HistoryList theme={theme} />
+              <HistoryList theme={theme} onNavigateToProfile={navigateToProfile} />
             )}
             {activeTab === 'profile' && (
-              <Profile theme={theme} onLogout={() => {
-                localStorage.removeItem('pescadia-user');
-                setUser(null);
-                setActiveTab('home');
-              }} />
+              <Profile 
+                theme={theme} 
+                currentUser={user}
+                targetUsername={viewingProfile}
+                onLogout={() => {
+                  localStorage.removeItem('pescadia-user');
+                  setUser(null);
+                  setActiveTab('home');
+                }} 
+              />
             )}
             {activeTab !== 'home' && activeTab !== 'map' && activeTab !== 'history' && activeTab !== 'profile' && (
               <div className="placeholder-view">
@@ -144,28 +156,28 @@ function App() {
       <nav className="bottom-nav">
         <button
           className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
-          onClick={() => setActiveTab('home')}
+          onClick={() => { setActiveTab('home'); setViewingProfile(null); }}
         >
           <Home size={24} />
           <span>Inicio</span>
         </button>
         <button
           className={`nav-item ${activeTab === 'map' ? 'active' : ''}`}
-          onClick={() => setActiveTab('map')}
+          onClick={() => { setActiveTab('map'); setViewingProfile(null); }}
         >
           <MapPin size={24} />
           <span>Mapa</span>
         </button>
         <button
           className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => setActiveTab('history')}
+          onClick={() => { setActiveTab('history'); setViewingProfile(null); }}
         >
           <History size={24} />
           <span>Historial</span>
         </button>
         <button
-          className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-          onClick={() => setActiveTab('profile')}
+          className={`nav-item ${activeTab === 'profile' && !viewingProfile ? 'active' : ''}`}
+          onClick={() => { setActiveTab('profile'); setViewingProfile(null); }}
         >
           <User size={24} />
           <span>Perfil</span>

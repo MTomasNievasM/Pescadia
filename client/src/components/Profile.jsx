@@ -1,48 +1,119 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye, Settings, LogOut, User } from 'lucide-react';
 
-export default function Profile({ theme, onLogout }) {
+export default function Profile({ theme, currentUser, targetUsername, onLogout }) {
   const [activeTab, setActiveTab] = useState('capturas');
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [captures, setCaptures] = useState([]);
   const [loadingCaptures, setLoadingCaptures] = useState(true);
 
-  const [profileData, setProfileData] = useState(() => {
-    const savedUser = localStorage.getItem('pescadia-user');
-    const user = savedUser ? JSON.parse(savedUser) : null;
-    return {
-      name: user ? user.display_name || user.username : "Usuario",
-      username: user ? `@${user.username}` : "@usuario",
-      bio: user ? user.bio || "¡Hola! Soy nuevo en Pescadia. 🌊🎣" : "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
-      avatar: user ? user.avatar || "" : "", 
-      cover: user ? user.cover || "" : ""
-    };
+  // Inicialmente vacío, se llenará con el fetch
+  const [profileData, setProfileData] = useState({
+    name: "Cargando...",
+    username: "@...",
+    bio: "",
+    avatar: "",
+    cover: "",
+    followersCount: 0,
+    followingCount: 0,
+    capturesCount: 0,
+    isFollowing: false,
+    isOwnProfile: false
   });
 
   const [editForm, setEditForm] = useState(profileData);
 
-  // Fotos de ejemplo
-  const [photos] = useState([
-    "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=400",
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400",
-    "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&q=80&w=400",
-    "https://images.unsplash.com/photo-1511216335778-0cb4f62ff536?auto=format&fit=crop&q=80&w=400"
-  ]);
+  // Determinar qué usuario buscar
+  const usernameToFetch = targetUsername || (currentUser ? currentUser.username : null);
 
   useEffect(() => {
+    if (!usernameToFetch) return;
+
+    fetch(`/api/users/${usernameToFetch.replace('@', '')}?current_user_id=${currentUser?.id || ''}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          console.error(data.error);
+          return;
+        }
+
+        const isOwnProfile = !targetUsername || targetUsername.replace('@', '') === currentUser?.username;
+
+        setProfileData({
+          id: data.id,
+          name: data.display_name || data.username,
+          username: `@${data.username}`,
+          bio: data.bio || "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
+          avatar: data.avatar || "",
+          cover: data.cover || "",
+          followersCount: data.followersCount || 0,
+          followingCount: data.followingCount || 0,
+          capturesCount: data.capturesCount || 0,
+          isFollowing: data.isFollowing || false,
+          isOwnProfile
+        });
+
+        if (isOwnProfile) {
+          setEditForm({
+            name: data.display_name || data.username,
+            username: `@${data.username}`,
+            bio: data.bio || "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
+            avatar: data.avatar || "",
+            cover: data.cover || ""
+          });
+
+          // Sincronizar localStorage
+          const savedUser = localStorage.getItem('pescadia-user');
+          if (savedUser) {
+            const user = JSON.parse(savedUser);
+            localStorage.setItem('pescadia-user', JSON.stringify({ 
+              ...user, 
+              bio: data.bio, 
+              avatar: data.avatar, 
+              display_name: data.display_name,
+              cover: data.cover
+            }));
+          }
+        }
+      })
+      .catch(err => console.error("Error fetching profile", err));
+
     fetch('/api/capturas')
       .then(res => res.json())
       .then(data => {
-        // No añadimos capturas de prueba para empezar de cero
-        setCaptures(data);
+        // Filtrar capturas por usuario
+        const userCaptures = data.filter(c => c.username === usernameToFetch.replace('@', ''));
+        setCaptures(userCaptures);
         setLoadingCaptures(false);
       })
       .catch(() => {
         setCaptures([]);
         setLoadingCaptures(false);
       });
-  }, []);
+  }, [usernameToFetch, currentUser]);
+
+  const handleFollowToggle = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`/api/users/${profileData.username.replace('@', '')}/follow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ current_user_id: currentUser.id })
+      });
+      const result = await response.json();
+      
+      if (response.ok) {
+        setProfileData(prev => ({
+          ...prev,
+          isFollowing: result.isFollowing,
+          followersCount: result.isFollowing ? prev.followersCount + 1 : prev.followersCount - 1
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleImageUpload = (e, field) => {
     const file = e.target.files[0];
@@ -329,7 +400,22 @@ export default function Profile({ theme, onLogout }) {
             )}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Editar Perfil</button>
+            {profileData.isOwnProfile ? (
+              <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Editar Perfil</button>
+            ) : (
+              <button 
+                className="edit-profile-btn" 
+                onClick={handleFollowToggle}
+                style={{ 
+                  background: profileData.isFollowing ? 'transparent' : '#38bdf8', 
+                  color: profileData.isFollowing ? 'var(--text-color)' : '#fff',
+                  border: profileData.isFollowing ? '1px solid var(--border-light)' : 'none'
+                }}
+              >
+                {profileData.isFollowing ? 'Siguiendo' : 'Seguir'}
+              </button>
+            )}
+            
             <button 
               className="action-btn" 
               onClick={() => setShowSettings(true)}
@@ -354,15 +440,15 @@ export default function Profile({ theme, onLogout }) {
           <p className="profile-bio">{profileData.bio}</p>
           <div className="profile-stats">
             <div className="stat-item">
-              <span className="stat-value">{captures.length}</span>
+              <span className="stat-value">{profileData.capturesCount}</span>
               <span className="stat-label">Capturas</span>
             </div>
             <div className="stat-item">
-              <span className="stat-value">0</span>
+              <span className="stat-value">{profileData.followersCount}</span>
               <span className="stat-label">Seguidores</span>
             </div>
             <div className="stat-item">
-              <span className="stat-value">0</span>
+              <span className="stat-value">{profileData.followingCount}</span>
               <span className="stat-label">Siguiendo</span>
             </div>
           </div>
