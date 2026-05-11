@@ -16,7 +16,7 @@ export default function Profile({ theme, onLogout }) {
       username: user ? `@${user.username}` : "@usuario",
       bio: user ? user.bio || "¡Hola! Soy nuevo en Pescadia. 🌊🎣" : "¡Hola! Soy nuevo en Pescadia. 🌊🎣",
       avatar: user ? user.avatar || "" : "", 
-      cover: ""
+      cover: user ? user.cover || "" : ""
     };
   });
 
