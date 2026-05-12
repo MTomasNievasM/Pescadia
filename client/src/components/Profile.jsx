@@ -610,7 +610,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout }
 
                     <div className="post-content" style={{ padding: '1.25rem' }}>
                       <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>{capture.species || 'Nueva Captura'}</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>{capture.titulo || capture.species || 'Nueva Captura'}</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {profileData.isOwnProfile && (
                             <button 
