@@ -165,7 +165,7 @@ export default function PointDetail({ point, onClose, theme, currentUser }) {
                       <strong style={{ color: isMine ? '#38bdf8' : 'inherit' }}>{comment.user}</strong>
                       <span style={{ fontSize: '0.8rem', color: 'var(--placeholder-color)' }}>{dateStr}</span>
                     </div>
-                    <p style={{ margin: 0 }}>{comment.text}</p>
+                    <p style={{ margin: 0 }}>{comment.texto}</p>
                   </div>
                 );
               })

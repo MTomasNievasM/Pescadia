@@ -92,7 +92,7 @@ export default function MapComponent({ activeTagFilter, clearFilter, onFilterSpe
                   <strong style={{ fontSize: '0.9rem' }}>Zona de Pesca</strong>
                   <p style={{ margin: '0.25rem 0', fontSize: '0.8rem' }}>Especies: {(marker.tags || []).join(', ')}</p>
                   <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#fbbf24', fontSize: '1rem' }}>
-                    {'★'.repeat(marker.rating)}{'☆'.repeat(5 - marker.rating)}
+                    {'★'.repeat(Math.round(marker.average_rating || marker.rating))}{'☆'.repeat(5 - Math.round(marker.average_rating || marker.rating))}
                   </p>
                   <button 
                     className="popup-btn" 
