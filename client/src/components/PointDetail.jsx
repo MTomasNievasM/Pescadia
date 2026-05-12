@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, X, MessageSquare, Send } from 'lucide-react';
 
 export default function PointDetail({ point, onClose, theme, currentUser }) {
