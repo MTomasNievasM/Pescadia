@@ -19,6 +19,8 @@ export default function NewCatchForm({ onClose, onSave, theme, currentUser }) {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [titulo, setTitulo] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -48,16 +50,20 @@ export default function NewCatchForm({ onClose, onSave, theme, currentUser }) {
     
     setIsSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append('latitude', position.lat !== undefined ? position.lat : position[0]);
+      formData.append('longitude', position.lng !== undefined ? position.lng : position[1]);
+      formData.append('rating', rating);
+      formData.append('tags', JSON.stringify(tags));
+      formData.append('user_id', currentUser?.id || '');
+      formData.append('titulo', titulo);
+      if (photoFile) {
+        formData.append('photo', photoFile);
+      }
+
       const response = await fetch('/api/capturas', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          latitude: position.lat !== undefined ? position.lat : position[0],
-          longitude: position.lng !== undefined ? position.lng : position[1],
-          rating,
-          tags,
-          user_id: currentUser?.id
-        })
+        body: formData
       });
       
       if (!response.ok) throw new Error('Error en el servidor al guardar la captura');
@@ -67,8 +73,7 @@ export default function NewCatchForm({ onClose, onSave, theme, currentUser }) {
     } catch (err) {
       console.error(err);
       alert('Hubo un problema al guardar. Si estás probando localmente, asegúrate de que el backend (server) está corriendo y conectado a la base de datos.');
-      // Lo cerramos igual para simular que funciona en desarrollo si falla el backend
-      onSave(); 
+      onSave(); // Fallback para cerrar modal
     } finally {
       setIsSubmitting(false);
     }
@@ -81,7 +86,29 @@ export default function NewCatchForm({ onClose, onSave, theme, currentUser }) {
         <h3>Registrar Nueva Captura</h3>
         
         <div className="form-section">
-          <label>1. Toca el mapa para fijar la ubicación exacta</label>
+          <label>Nombre / Título de la publicación</label>
+          <input 
+            type="text" 
+            value={titulo} 
+            onChange={(e) => setTitulo(e.target.value)} 
+            placeholder="Ej: Gran Dorada en el puerto" 
+            className="tag-input"
+            style={{ width: '100%', marginBottom: '0.5rem' }}
+          />
+        </div>
+
+        <div className="form-section">
+          <label>Foto de la captura</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={(e) => setPhotoFile(e.target.files[0])} 
+            style={{ width: '100%', marginBottom: '0.5rem' }}
+          />
+        </div>
+
+        <div className="form-section">
+          <label>Ubicación (Toca el mapa para fijar)</label>
           <div className="form-map-container" style={{position: 'relative'}}>
             {position ? (
               <MapContainer center={position} zoom={13} style={{height: '100%', width: '100%', borderRadius: '0.5rem'}} zoomControl={false}>

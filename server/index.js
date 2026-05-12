@@ -104,10 +104,18 @@ const initDB = async () => {
         rating INTEGER NOT NULL,
         tags TEXT[] NOT NULL,
         photo_url TEXT,
+        titulo VARCHAR(100),
         user_id INTEGER REFERENCES usuarios(id),
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    // Añadir columna titulo si no existe (para DBs ya creadas)
+    try {
+      await pool.query('ALTER TABLE capturas ADD COLUMN IF NOT EXISTS titulo VARCHAR(100)');
+    } catch (err) {
+      console.log('La columna titulo ya existe o hubo un error al crearla');
+    }
 
     // Tabla de Seguidores
     await pool.query(`
@@ -307,7 +315,7 @@ app.post('/api/users/:username/follow', async (req, res) => {
 // Subir captura con foto
 app.post('/api/capturas', upload.single('photo'), async (req, res) => {
   try {
-    const { latitude, longitude, rating, tags, user_id } = req.body;
+    const { latitude, longitude, rating, tags, user_id, titulo } = req.body;
     const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
     
     try {
@@ -317,8 +325,8 @@ app.post('/api/capturas', upload.single('photo'), async (req, res) => {
       
       // Intentar guardar en Base de Datos
       const result = await pool.query(
-        'INSERT INTO capturas (latitude, longitude, rating, tags, photo_url, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [latitude, longitude, rating, parsedTags, photo_url, user_id || null]
+        'INSERT INTO capturas (latitude, longitude, rating, tags, photo_url, user_id, titulo) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [latitude, longitude, rating, parsedTags, photo_url, user_id || null, titulo || null]
       );
       
       const newCapture = result.rows[0];
