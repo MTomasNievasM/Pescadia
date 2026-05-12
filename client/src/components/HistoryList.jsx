@@ -71,7 +71,7 @@ export default function HistoryList({ theme, onNavigateToProfile }) {
 
             <div className="capture-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <span style={{ fontWeight: '700', color: 'var(--text-color)', fontSize: '1rem' }}>{capture.species || "Captura"}</span>
+                <span style={{ fontWeight: '700', color: 'var(--text-color)', fontSize: '1rem' }}>{capture.titulo || capture.species || "Captura"}</span>
                 <span style={{ fontSize: '0.75rem', color: 'var(--placeholder-color)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Calendar size={12} /> {new Date(capture.created_at || capture.date).toLocaleDateString()}
                 </span>
