@@ -10,11 +10,11 @@ import Auth from './components/Auth'
 import logoDark from './assets/logo_navbar1.png'
 import logoLight from './assets/logo_navbar1_dia.png'
 import L from 'leaflet'
-import { fishIcon } from './utils/fishIcon'
+import { bobberIcon } from './utils/bobberIcon'
 import 'leaflet/dist/leaflet.css'
 
-// Establecer el icono de la cola de pez como global para toda la app
-L.Marker.prototype.options.icon = fishIcon;
+// Establecer el icono de la boya como global para toda la app
+L.Marker.prototype.options.icon = bobberIcon;
 import './index.css'
 
 function App() {
