@@ -26,6 +26,7 @@ function App() {
   const [activeTagFilter, setActiveTagFilter] = useState(null)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [user, setUser] = useState(null)
+  const [capturas, setCapturas] = useState([])
 
   useEffect(() => {
     // Restaurar tema guardado o por defecto a oscuro
@@ -43,6 +44,20 @@ function App() {
       .then(res => res.json())
       .then(data => setServerStatus(data.status === 'ok' ? 'Conectado' : 'Error'))
       .catch(() => setServerStatus('Error de conexión'))
+
+    // Cargar capturas
+    const fetchCapturas = async () => {
+      try {
+        const res = await fetch('/api/capturas');
+        if (res.ok) {
+          const data = await res.json();
+          setCapturas(data);
+        }
+      } catch (err) {
+        console.error("Error al cargar capturas:", err);
+      }
+    };
+    fetchCapturas();
   }, [])
 
   const toggleTheme = () => {
@@ -105,6 +120,7 @@ function App() {
             )}
             {activeTab === 'map' && (
                 <MapComponent
+                  markers={capturas}
                   activeTagFilter={activeTagFilter}
                   clearFilter={() => setActiveTagFilter(null)}
                   onFilterSpecies={(tag) => setActiveTagFilter(tag)}
@@ -138,7 +154,10 @@ function App() {
               <NewCatchForm
                 currentUser={user}
                 onClose={() => setShowNewCatchModal(false)}
-                onSave={() => setShowNewCatchModal(false)}
+                onSave={(newPoint) => {
+                  setCapturas([newPoint, ...capturas]);
+                  setShowNewCatchModal(false);
+                }}
                 theme={theme}
               />
             )}

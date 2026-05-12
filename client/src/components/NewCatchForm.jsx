@@ -62,7 +62,8 @@ export default function NewCatchForm({ onClose, onSave, theme, currentUser }) {
       
       if (!response.ok) throw new Error('Error en el servidor al guardar la captura');
       
-      onSave(); // Refrescar datos y cerrar modal
+      const data = await response.json();
+      onSave(data); // Refrescar datos y cerrar modal
     } catch (err) {
       console.error(err);
       alert('Hubo un problema al guardar. Si estás probando localmente, asegúrate de que el backend (server) está corriendo y conectado a la base de datos.');

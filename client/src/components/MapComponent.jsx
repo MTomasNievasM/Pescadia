@@ -19,32 +19,18 @@ let DefaultIcon = L.icon({
 });
 // El mapa principal ahora solo muestra marcadores, no permite crearlos.
 
-export default function MapComponent({ activeTagFilter, clearFilter, onFilterSpecies, theme, onSelectPoint }) {
+export default function MapComponent({ markers: initialMarkers = [], activeTagFilter, clearFilter, onFilterSpecies, theme, onSelectPoint }) {
   const [markers, setMarkers] = useState([]);
 
   useEffect(() => {
-    const fetchMarkers = async () => {
-      try {
-        const response = await fetch('/api/capturas');
-        if (!response.ok) return;
-        const data = await response.json();
-        
-        if (Array.isArray(data)) {
-          let filtered = data;
-          if (activeTagFilter) {
-            filtered = data.filter(cap => 
-              cap.tags && cap.tags.some(t => t.toLowerCase().trim() === activeTagFilter)
-            );
-          }
-          setMarkers(filtered);
-        }
-      } catch (err) {
-        console.error("Error cargando marcadores:", err);
-      }
-    };
-    
-    fetchMarkers();
-  }, [activeTagFilter]);
+    let filtered = initialMarkers;
+    if (activeTagFilter) {
+      filtered = initialMarkers.filter(cap => 
+        cap.tags && cap.tags.some(t => t.toLowerCase().trim() === activeTagFilter)
+      );
+    }
+    setMarkers(filtered);
+  }, [initialMarkers, activeTagFilter]);
 
   return (
     <div className="map-wrapper">
