@@ -94,7 +94,7 @@ export default function MiniMap({ theme, onSelectPoint }) {
                 <div className="map-popup-content" style={{ minWidth: '150px' }}>
                   {marker.photo_url ? (
                     <img 
-                      src={`/api${marker.photo_url}`} 
+                      src={`${window.location.origin}/api${marker.photo_url}`} 
                       alt="Última captura" 
                       style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '0.5rem', marginBottom: '0.5rem' }} 
                     />
@@ -103,7 +103,7 @@ export default function MiniMap({ theme, onSelectPoint }) {
                       Sin foto
                     </div>
                   )}
-                  <strong style={{ fontSize: '0.9rem' }}>Zona de Pesca</strong>
+                  <strong style={{ fontSize: '0.9rem' }}>{marker.titulo || 'Zona de Pesca'}</strong>
                   <p style={{ margin: '0.25rem 0', fontSize: '0.8rem' }}>Especies: {(marker.tags || []).join(', ')}</p>
                   <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#fbbf24', fontSize: '1rem' }}>
                     {'★'.repeat(marker.rating)}{'☆'.repeat(5 - marker.rating)}
