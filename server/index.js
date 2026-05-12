@@ -139,6 +139,17 @@ const initDB = async () => {
       )
     `);
 
+    // Tabla de Likes
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS likes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        captura_id INTEGER REFERENCES capturas(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, captura_id)
+      )
+    `);
+
     // Tabla de Valoraciones
     await pool.query(`
       CREATE TABLE IF NOT EXISTS valoraciones (
@@ -368,15 +379,18 @@ app.post('/api/capturas', upload.single('photo'), async (req, res) => {
 // Obtener todas las capturas
 app.get('/api/capturas', async (req, res) => {
   try {
+    const { user_id } = req.query;
     try {
       const result = await pool.query(`
-        SELECT c.*, u.username, COALESCE(AVG(v.puntuacion), 0)::float as average_rating
+        SELECT c.*, u.username, COALESCE(AVG(v.puntuacion), 0)::float as average_rating,
+               (SELECT COUNT(*) FROM likes WHERE captura_id = c.id) as likes,
+               CASE WHEN $1::integer IS NOT NULL THEN EXISTS(SELECT 1 FROM likes WHERE captura_id = c.id AND user_id = $1) ELSE false END as liked
         FROM capturas c 
         LEFT JOIN usuarios u ON c.user_id = u.id 
         LEFT JOIN valoraciones v ON c.id = v.captura_id
         GROUP BY c.id, u.username
         ORDER BY c.created_at DESC
-      `);
+      `, [user_id]);
       res.json(result.rows);
     } catch (dbErr) {
       // Si falla la DB, devolvemos lo que hay en memoria
@@ -422,7 +436,9 @@ app.get('/api/feed', async (req, res) => {
 
     const result = await pool.query(`
       SELECT c.*, u.username,
-             (SELECT AVG(puntuacion)::float FROM valoraciones WHERE captura_id = c.id) as average_rating
+             (SELECT AVG(puntuacion)::float FROM valoraciones WHERE captura_id = c.id) as average_rating,
+             (SELECT COUNT(*) FROM likes WHERE captura_id = c.id) as likes,
+             EXISTS(SELECT 1 FROM likes WHERE captura_id = c.id AND user_id = $1) as liked
       FROM capturas c
       JOIN usuarios u ON c.user_id = u.id
       WHERE c.user_id IN (
@@ -476,6 +492,30 @@ app.get('/api/capturas/:id/detalles', async (req, res) => {
       media: mediaResult.rows[0].media ? parseFloat(mediaResult.rows[0].media) : null,
       tu_valoracion
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Dar/Quitar Like
+app.post('/api/capturas/:id/like', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'Se requiere ID de usuario' });
+
+    // Verificar si ya le dio like
+    const checkLike = await pool.query('SELECT * FROM likes WHERE user_id = $1 AND captura_id = $2', [user_id, id]);
+
+    if (checkLike.rows.length > 0) {
+      // Quitar like
+      await pool.query('DELETE FROM likes WHERE user_id = $1 AND captura_id = $2', [user_id, id]);
+      res.json({ success: true, liked: false });
+    } else {
+      // Dar like
+      await pool.query('INSERT INTO likes (user_id, captura_id) VALUES ($1, $2)', [user_id, id]);
+      res.json({ success: true, liked: true });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

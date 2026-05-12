@@ -86,7 +86,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
       })
       .catch(err => console.error("Error fetching profile", err));
 
-    fetch('/api/capturas')
+    fetch(`/api/capturas?user_id=${currentUser?.id || ''}`)
       .then(res => res.json())
       .then(data => {
         // Filtrar capturas por usuario
@@ -115,6 +115,33 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
           ...prev,
           isFollowing: result.isFollowing,
           followersCount: result.isFollowing ? prev.followersCount + 1 : prev.followersCount - 1
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleLike = async (captureId) => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`/api/capturas/${captureId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: currentUser.id })
+      });
+      const result = await response.json();
+      
+      if (response.ok) {
+        setCaptures(prev => prev.map(c => {
+          if (c.id === captureId) {
+            return {
+              ...c,
+              liked: result.liked,
+              likes: result.liked ? (parseInt(c.likes) || 0) + 1 : (parseInt(c.likes) || 1) - 1
+            };
+          }
+          return c;
         }));
       }
     } catch (err) {
