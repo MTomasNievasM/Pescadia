@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye, Settings, LogOut, User } from 'lucide-react';
 
-export default function Profile({ theme, currentUser, targetUsername, onLogout }) {
+export default function Profile({ theme, currentUser, targetUsername, onLogout, onSelectPoint }) {
   const [activeTab, setActiveTab] = useState('capturas');
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -665,7 +665,11 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout }
                           </button>
                         </div>
 
-                        <button className="action-btn" style={{ color: '#38bdf8', fontWeight: '800' }}>
+                        <button 
+                          className="action-btn" 
+                          style={{ color: '#38bdf8', fontWeight: '800' }}
+                          onClick={() => onSelectPoint && onSelectPoint(capture)}
+                        >
                           <Eye size={18} style={{ marginRight: '4px' }} /> Ver pesca
                         </button>
                       </div>
