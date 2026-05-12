@@ -623,7 +623,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                     {capture.photo_url && (
                       <div className="post-image" style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
                         <img
-                          src={`${window.location.origin}/api${capture.photo_url}`}
+                          src={capture.photo_url.startsWith('http') ? capture.photo_url : `${window.location.origin}/api${capture.photo_url}`}
                           alt={capture.species}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
