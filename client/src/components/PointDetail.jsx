@@ -105,7 +105,7 @@ export default function PointDetail({ point, onClose, theme, currentUser }) {
 
         {/* Info Básica */}
         <div>
-          <h3 style={{ margin: '0 0 0.5rem 0' }}>Zona de Pesca #{point.id}</h3>
+          <h3 style={{ margin: '0 0 0.5rem 0' }}>{point.titulo || `Zona de Pesca #${point.id}`}</h3>
           <div className="tags-list" style={{ justifyContent: 'flex-start' }}>
             {(point.tags || []).map(tag => (
               <span key={tag} className="tag-badge">{tag}</span>
