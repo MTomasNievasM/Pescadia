@@ -698,7 +698,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
 
                       {/* Comentarios inline - solo los 2 más recientes + barra de comentario rápido */}
                       <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {capture.commentsList && capture.commentsList.length > 0 && (
+                        {Array.isArray(capture.commentsList) && capture.commentsList.length > 0 && (
                           <>
                             {capture.commentsList.length > 2 && (
                               <button

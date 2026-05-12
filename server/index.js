@@ -397,7 +397,7 @@ app.get('/api/capturas', async (req, res) => {
       `, [user_id]);
       const rows = result.rows.map(row => ({
         ...row,
-        commentsList: typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : row.commentsList
+        commentsList: Array.isArray(row.commentsList) ? row.commentsList : (typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : [])
       }));
       res.json(rows);
     } catch (dbErr) {
@@ -461,7 +461,7 @@ app.get('/api/feed', async (req, res) => {
 
     const rows = result.rows.map(row => ({
       ...row,
-      commentsList: typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : row.commentsList
+      commentsList: Array.isArray(row.commentsList) ? row.commentsList : (typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : [])
     }));
     res.json(rows);
   } catch (err) {
