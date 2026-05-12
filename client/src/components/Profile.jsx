@@ -151,6 +151,29 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout }
     }
   };
 
+  const handleDeleteCapture = async (captureId) => {
+    if (!window.confirm('¿Estás seguro de que quieres borrar esta publicación?')) return;
+    
+    try {
+      const response = await fetch(`/api/capturas/${captureId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: currentUser.id })
+      });
+      
+      if (response.ok) {
+        setCaptures(captures.filter(c => c.id !== captureId));
+        setProfileData(prev => ({ ...prev, capturesCount: Math.max(0, prev.capturesCount - 1) }));
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Error al borrar la captura');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión al borrar la captura');
+    }
+  };
+
   const [selectedPost, setSelectedPost] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState(null); // { captureId, commentId }
@@ -588,9 +611,20 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout }
                     <div className="post-content" style={{ padding: '1.25rem' }}>
                       <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                         <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>{capture.species || 'Nueva Captura'}</h3>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--placeholder-color)' }}>
-                          {new Date(capture.created_at || capture.date).toLocaleDateString()}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {profileData.isOwnProfile && (
+                            <button 
+                              onClick={() => handleDeleteCapture(capture.id)}
+                              style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem' }}
+                              title="Borrar publicación"
+                            >
+                              <X size={18} />
+                            </button>
+                          )}
+                          <span style={{ fontSize: '0.8rem', color: 'var(--placeholder-color)' }}>
+                            {new Date(capture.created_at || capture.date).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="location" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--placeholder-color)' }}>

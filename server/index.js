@@ -379,6 +379,33 @@ app.get('/api/capturas', async (req, res) => {
   }
 });
 
+// Borrar captura
+app.delete('/api/capturas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id } = req.body;
+    
+    if (!user_id) return res.status(400).json({ error: 'Se requiere ID de usuario' });
+
+    // Verificar que la captura pertenece al usuario
+    const captureResult = await pool.query('SELECT user_id FROM capturas WHERE id = $1', [id]);
+    if (captureResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Captura no encontrada' });
+    }
+    
+    if (captureResult.rows[0].user_id !== parseInt(user_id)) {
+      return res.status(403).json({ error: 'No tienes permiso para borrar esta captura' });
+    }
+
+    // Borrar captura (comentarios y valoraciones se borran en cascada)
+    await pool.query('DELETE FROM capturas WHERE id = $1', [id]);
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- RUTAS DE COMENTARIOS Y VALORACIONES ---
 
 app.get('/api/capturas/:id/detalles', async (req, res) => {
