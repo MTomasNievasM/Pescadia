@@ -179,7 +179,15 @@ export default function PointDetail({ point, onClose, theme, currentUser, onNavi
                 return (
                   <div key={comment.id} style={{ background: isMine ? 'rgba(14, 165, 233, 0.1)' : 'var(--btn-bg)', padding: '0.75rem', borderRadius: '0.5rem', fontSize: '0.9rem', border: isMine ? '1px solid rgba(14, 165, 233, 0.3)' : 'none' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <strong style={{ color: isMine ? '#38bdf8' : 'inherit' }}>{comment.username}</strong>
+                      <strong 
+                        style={{ color: isMine ? '#38bdf8' : 'inherit', cursor: 'pointer' }}
+                        onClick={() => {
+                          onNavigateToProfile && onNavigateToProfile(comment.username);
+                          onClose();
+                        }}
+                      >
+                        {comment.username}
+                      </strong>
                       <span style={{ fontSize: '0.8rem', color: 'var(--placeholder-color)' }}>{dateStr}</span>
                     </div>
                     <p style={{ margin: 0 }}>{comment.texto}</p>

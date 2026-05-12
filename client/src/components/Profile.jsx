@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Heart, Share2, Star, MapPin, Calendar, Tag, X, Grid, Camera, Fish, Eye, Settings, LogOut, User } from 'lucide-react';
 
-export default function Profile({ theme, currentUser, targetUsername, onLogout, onSelectPoint }) {
+export default function Profile({ theme, currentUser, targetUsername, onLogout, onSelectPoint, onNavigateToProfile }) {
   const [activeTab, setActiveTab] = useState('capturas');
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -754,7 +754,12 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                                   <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                       <div style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
-                                        <span style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.4rem' }}>{c.author}</span>
+                                        <span 
+                                          style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.4rem', cursor: 'pointer' }}
+                                          onClick={() => onNavigateToProfile && onNavigateToProfile(c.author)}
+                                        >
+                                          {c.author}
+                                        </span>
                                         <span style={{ color: 'var(--placeholder-color)' }}>{c.text}</span>
                                       </div>
                                       <button
@@ -781,7 +786,12 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                                           {r.author.charAt(0).toUpperCase()}
                                         </div>
                                         <div style={{ fontSize: '0.78rem', lineHeight: '1.4' }}>
-                                          <span style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.35rem' }}>{r.author}</span>
+                                          <span 
+                                            style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.35rem', cursor: 'pointer' }}
+                                            onClick={() => onNavigateToProfile && onNavigateToProfile(r.author)}
+                                          >
+                                            {r.author}
+                                          </span>
                                           <span style={{ color: 'var(--placeholder-color)' }}>{r.text}</span>
                                         </div>
                                       </div>

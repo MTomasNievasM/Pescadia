@@ -140,6 +140,7 @@ function App() {
                 currentUser={user}
                 targetUsername={viewingProfile}
                 onSelectPoint={setSelectedPoint}
+                onNavigateToProfile={navigateToProfile}
                 onLogout={() => {
                   localStorage.removeItem('pescadia-user');
                   setUser(null);
