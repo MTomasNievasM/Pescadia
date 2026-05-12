@@ -33,12 +33,19 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout }
     fetch(`/api/users/${usernameToFetch.replace('@', '')}?current_user_id=${currentUser?.id || ''}`)
       .then(res => res.json())
       .then(data => {
+        const isOwnProfile = !targetUsername || targetUsername.replace('@', '') === currentUser?.username;
+        
         if (data.error) {
           console.error(data.error);
+          if (data.error === 'Usuario no encontrado' && isOwnProfile) {
+            alert('Sesión caducada o base de datos reiniciada. Por favor, vuelve a iniciar sesión.');
+            if (onLogout) onLogout();
+          } else if (data.error === 'Usuario no encontrado') {
+            setProfileData(prev => ({ ...prev, name: "Usuario no encontrado", bio: "Este usuario no existe o ha sido borrado." }));
+          }
           return;
         }
 
-        const isOwnProfile = !targetUsername || targetUsername.replace('@', '') === currentUser?.username;
 
         setProfileData({
           id: data.id,

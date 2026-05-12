@@ -136,6 +136,7 @@ function App() {
 
             {showNewCatchModal && (
               <NewCatchForm
+                currentUser={user}
                 onClose={() => setShowNewCatchModal(false)}
                 onSave={() => setShowNewCatchModal(false)}
                 theme={theme}

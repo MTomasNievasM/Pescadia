@@ -13,7 +13,7 @@ function LocationSelector({ onLocationSelect }) {
   return null;
 }
 
-export default function NewCatchForm({ onClose, onSave, theme }) {
+export default function NewCatchForm({ onClose, onSave, theme, currentUser }) {
   const [position, setPosition] = useState(null);
   const [rating, setRating] = useState(0);
   const [tags, setTags] = useState([]);
@@ -55,7 +55,8 @@ export default function NewCatchForm({ onClose, onSave, theme }) {
           latitude: position.lat !== undefined ? position.lat : position[0],
           longitude: position.lng !== undefined ? position.lng : position[1],
           rating,
-          tags
+          tags,
+          user_id: currentUser?.id
         })
       });
       
