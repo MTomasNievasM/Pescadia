@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { bobberIcon } from '../utils/bobberIcon';
 
 // Hook para centrar el mapa cuando la posición cambie
 function ChangeView({ center, zoom }) {
@@ -75,7 +76,7 @@ export default function MiniMap({ theme, onSelectPoint }) {
         />
         
         {/* Marcador de usuario */}
-        <Marker position={position}>
+        <Marker position={position} icon={bobberIcon}>
           <Popup>
             <div style={{color: '#000', margin: 0}}>Estás aquí</div>
           </Popup>
