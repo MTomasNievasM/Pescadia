@@ -535,7 +535,7 @@ app.post('/api/capturas/:id/comentarios', async (req, res) => {
     const userResult = await pool.query('SELECT username FROM usuarios WHERE id = $1', [user_id]);
     const nuevoComentario = {
       ...result.rows[0],
-      user: userResult.rows[0].username
+      username: userResult.rows[0].username
     };
 
     res.json(nuevoComentario);
