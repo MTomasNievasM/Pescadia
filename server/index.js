@@ -395,7 +395,11 @@ app.get('/api/capturas', async (req, res) => {
         GROUP BY c.id, u.username
         ORDER BY c.created_at DESC
       `, [user_id]);
-      res.json(result.rows);
+      const rows = result.rows.map(row => ({
+        ...row,
+        commentsList: typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : row.commentsList
+      }));
+      res.json(rows);
     } catch (dbErr) {
       // Si falla la DB, devolvemos lo que hay en memoria
       res.json(memoriaCapturas);
@@ -455,7 +459,11 @@ app.get('/api/feed', async (req, res) => {
       ORDER BY c.created_at DESC
     `, [user_id]);
 
-    res.json(result.rows);
+    const rows = result.rows.map(row => ({
+      ...row,
+      commentsList: typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : row.commentsList
+    }));
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
