@@ -44,8 +44,10 @@ function App() {
       .then(res => res.json())
       .then(data => setServerStatus(data.status === 'ok' ? 'Conectado' : 'Error'))
       .catch(() => setServerStatus('Error de conexión'))
+  }, [])
 
-    // Cargar capturas
+  // Cargar capturas cuando cambie de pestaña para tener datos frescos
+  useEffect(() => {
     const fetchCapturas = async () => {
       try {
         const res = await fetch('/api/capturas');
@@ -58,7 +60,7 @@ function App() {
       }
     };
     fetchCapturas();
-  }, [])
+  }, [activeTab]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
