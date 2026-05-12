@@ -414,6 +414,29 @@ app.delete('/api/capturas/:id', async (req, res) => {
   }
 });
 
+// Obtener feed de usuarios seguidos
+app.get('/api/feed', async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ error: 'Se requiere ID de usuario' });
+
+    const result = await pool.query(`
+      SELECT c.*, u.username,
+             (SELECT AVG(puntuacion)::float FROM valoraciones WHERE captura_id = c.id) as average_rating
+      FROM capturas c
+      JOIN usuarios u ON c.user_id = u.id
+      WHERE c.user_id IN (
+        SELECT seguido_id FROM seguidores WHERE seguidor_id = $1
+      ) OR c.user_id = $1
+      ORDER BY c.created_at DESC
+    `, [user_id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- RUTAS DE COMENTARIOS Y VALORACIONES ---
 
 app.get('/api/capturas/:id/detalles', async (req, res) => {

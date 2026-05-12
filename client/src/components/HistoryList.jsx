@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Star, MapPin, Calendar, Tag, Fish, Eye } from 'lucide-react';
 
-export default function HistoryList({ theme, onNavigateToProfile, onSelectPoint }) {
+export default function HistoryList({ theme, onNavigateToProfile, onSelectPoint, currentUser }) {
   const [captures, setCaptures] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/capturas')
+    if (!currentUser) return;
+    
+    fetch(`/api/feed?user_id=${currentUser.id}`)
       .then(res => res.json())
       .then(data => {
         setCaptures(data);
@@ -23,8 +25,8 @@ export default function HistoryList({ theme, onNavigateToProfile, onSelectPoint 
   return (
     <div className="history-view">
       <div className="history-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Historial</h2>
-        <p style={{ color: 'var(--placeholder-color)', fontSize: '0.9rem' }}>Tus rutas y puntos de pesca</p>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Feed</h2>
+        <p style={{ color: 'var(--placeholder-color)', fontSize: '0.9rem' }}>Publicaciones de las personas que sigues</p>
       </div>
 
       <div className="timeline-container" style={{ display: 'flex', flexDirection: 'column', paddingLeft: '0.5rem', borderLeft: '2px solid var(--border-light)', gap: '1rem', marginLeft: '0.5rem' }}>

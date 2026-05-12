@@ -131,7 +131,7 @@ function App() {
                 />
             )}
             {activeTab === 'history' && (
-              <HistoryList theme={theme} onNavigateToProfile={navigateToProfile} onSelectPoint={setSelectedPoint} />
+              <HistoryList theme={theme} onNavigateToProfile={navigateToProfile} onSelectPoint={setSelectedPoint} currentUser={user} />
             )}
             {activeTab === 'profile' && (
               <Profile 
@@ -197,7 +197,7 @@ function App() {
           onClick={() => { setActiveTab('history'); setViewingProfile(null); }}
         >
           <History size={24} />
-          <span>Historial</span>
+          <span>Feed</span>
         </button>
         <button
           className={`nav-item ${activeTab === 'profile' && !viewingProfile ? 'active' : ''}`}
