@@ -288,10 +288,14 @@ app.post('/api/capturas', upload.single('photo'), async (req, res) => {
     const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
     
     try {
+      let parsedTags = [];
+      if (Array.isArray(tags)) parsedTags = tags;
+      else if (typeof tags === 'string') try { parsedTags = JSON.parse(tags); } catch(e) { parsedTags = []; }
+      
       // Intentar guardar en Base de Datos
       const result = await pool.query(
         'INSERT INTO capturas (latitude, longitude, rating, tags, photo_url, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [latitude, longitude, rating, tags ? JSON.parse(tags) : [], photo_url, user_id || null]
+        [latitude, longitude, rating, parsedTags, photo_url, user_id || null]
       );
       res.json(result.rows[0]);
     } catch (dbErr) {
