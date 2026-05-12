@@ -320,7 +320,22 @@ app.post('/api/capturas', upload.single('photo'), async (req, res) => {
         'INSERT INTO capturas (latitude, longitude, rating, tags, photo_url, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
         [latitude, longitude, rating, parsedTags, photo_url, user_id || null]
       );
-      res.json(result.rows[0]);
+      
+      const newCapture = result.rows[0];
+      
+      // Si el creador le puso nota, la guardamos también como valoración
+      if (user_id && rating > 0) {
+        try {
+          await pool.query(
+            'INSERT INTO valoraciones (captura_id, user_id, puntuacion) VALUES ($1, $2, $3)',
+            [newCapture.id, user_id, rating]
+          );
+        } catch (vErr) {
+          console.error('Error al auto-valorar:', vErr);
+        }
+      }
+
+      res.json(newCapture);
     } catch (dbErr) {
       // Si falla la DB (porque estás en local sin Docker), guardamos en memoria
       console.log('Guardando en memoria (Fallo DB)');
