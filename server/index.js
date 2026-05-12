@@ -15,6 +15,12 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Chivato para ver si llegan peticiones
+app.use((req, res, next) => {
+  console.log(`[PETICIÓN] ${req.method} ${req.url}`);
+  next();
+});
+
 
 // Servir la carpeta de subidas como estática para poder ver las fotos
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
