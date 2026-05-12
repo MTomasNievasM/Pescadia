@@ -148,6 +148,7 @@ function App() {
                 point={selectedPoint}
                 onClose={() => setSelectedPoint(null)}
                 theme={theme}
+                currentUser={currentUser}
               />
             )}
           </>

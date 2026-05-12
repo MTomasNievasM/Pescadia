@@ -119,6 +119,29 @@ const initDB = async () => {
         UNIQUE(seguidor_id, seguido_id)
       )
     `);
+
+    // Tabla de Comentarios
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comentarios (
+        id SERIAL PRIMARY KEY,
+        captura_id INTEGER REFERENCES capturas(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        texto TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Tabla de Valoraciones
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS valoraciones (
+        id SERIAL PRIMARY KEY,
+        captura_id INTEGER REFERENCES capturas(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        puntuacion INTEGER NOT NULL CHECK (puntuacion >= 1 AND puntuacion <= 5),
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(captura_id, user_id)
+      )
+    `);
     console.log('Tablas verificadas/creadas correctamente.');
   } catch (err) {
     console.error('Error al inicializar la base de datos (No te preocupes, usaré la memoria):');
@@ -334,6 +357,89 @@ app.get('/api/capturas', async (req, res) => {
       // Si falla la DB, devolvemos lo que hay en memoria
       res.json(memoriaCapturas);
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- RUTAS DE COMENTARIOS Y VALORACIONES ---
+
+app.get('/api/capturas/:id/detalles', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { current_user_id } = req.query;
+
+    const comentariosResult = await pool.query(`
+      SELECT c.id, c.texto, c.created_at, u.username as user
+      FROM comentarios c
+      JOIN usuarios u ON c.user_id = u.id
+      WHERE c.captura_id = $1
+      ORDER BY c.created_at DESC
+    `, [id]);
+
+    const mediaResult = await pool.query(`
+      SELECT AVG(puntuacion) as media FROM valoraciones WHERE captura_id = $1
+    `, [id]);
+    
+    let tu_valoracion = 0;
+    if (current_user_id) {
+      const miValoracionResult = await pool.query(`
+        SELECT puntuacion FROM valoraciones WHERE captura_id = $1 AND user_id = $2
+      `, [id, current_user_id]);
+      if (miValoracionResult.rows.length > 0) {
+        tu_valoracion = miValoracionResult.rows[0].puntuacion;
+      }
+    }
+
+    res.json({
+      comentarios: comentariosResult.rows,
+      media: mediaResult.rows[0].media ? parseFloat(mediaResult.rows[0].media) : null,
+      tu_valoracion
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/capturas/:id/comentarios', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id, texto } = req.body;
+    
+    if (!user_id || !texto) return res.status(400).json({ error: 'Faltan datos' });
+
+    const result = await pool.query(`
+      INSERT INTO comentarios (captura_id, user_id, texto) VALUES ($1, $2, $3) RETURNING *
+    `, [id, user_id, texto]);
+    
+    const userResult = await pool.query('SELECT username FROM usuarios WHERE id = $1', [user_id]);
+    const nuevoComentario = {
+      ...result.rows[0],
+      user: userResult.rows[0].username
+    };
+
+    res.json(nuevoComentario);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/capturas/:id/valorar', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id, puntuacion } = req.body;
+    
+    if (!user_id || !puntuacion) return res.status(400).json({ error: 'Faltan datos' });
+
+    const result = await pool.query(`
+      INSERT INTO valoraciones (captura_id, user_id, puntuacion) 
+      VALUES ($1, $2, $3) 
+      ON CONFLICT (captura_id, user_id) 
+      DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+      RETURNING *
+    `, [id, user_id, puntuacion]);
+
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
