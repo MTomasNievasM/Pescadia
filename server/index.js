@@ -384,7 +384,11 @@ app.get('/api/capturas', async (req, res) => {
       const result = await pool.query(`
         SELECT c.*, u.username, COALESCE(AVG(v.puntuacion), 0)::float as average_rating,
                (SELECT COUNT(*) FROM likes WHERE captura_id = c.id) as likes,
-               CASE WHEN $1::integer IS NOT NULL THEN EXISTS(SELECT 1 FROM likes WHERE captura_id = c.id AND user_id = $1) ELSE false END as liked
+               CASE WHEN $1::integer IS NOT NULL THEN EXISTS(SELECT 1 FROM likes WHERE captura_id = c.id AND user_id = $1) ELSE false END as liked,
+               (SELECT COALESCE(json_agg(json_build_object('id', co.id, 'texto', co.texto, 'username', cu.username, 'created_at', co.created_at)), '[]'::json) 
+                FROM comentarios co 
+                JOIN usuarios cu ON co.user_id = cu.id 
+                WHERE co.captura_id = c.id) as "commentsList"
         FROM capturas c 
         LEFT JOIN usuarios u ON c.user_id = u.id 
         LEFT JOIN valoraciones v ON c.id = v.captura_id
@@ -438,7 +442,11 @@ app.get('/api/feed', async (req, res) => {
       SELECT c.*, u.username,
              (SELECT AVG(puntuacion)::float FROM valoraciones WHERE captura_id = c.id) as average_rating,
              (SELECT COUNT(*) FROM likes WHERE captura_id = c.id) as likes,
-             EXISTS(SELECT 1 FROM likes WHERE captura_id = c.id AND user_id = $1) as liked
+             EXISTS(SELECT 1 FROM likes WHERE captura_id = c.id AND user_id = $1) as liked,
+             (SELECT COALESCE(json_agg(json_build_object('id', co.id, 'texto', co.texto, 'username', cu.username, 'created_at', co.created_at)), '[]'::json) 
+              FROM comentarios co 
+              JOIN usuarios cu ON co.user_id = cu.id 
+              WHERE co.captura_id = c.id) as "commentsList"
       FROM capturas c
       JOIN usuarios u ON c.user_id = u.id
       WHERE c.user_id IN (
