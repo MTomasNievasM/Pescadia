@@ -73,6 +73,7 @@ function App() {
   const navigateToProfile = (username) => {
     setViewingProfile(username);
     setActiveTab('profile');
+    setSelectedPoint(null);
   };
 
   return (
@@ -171,6 +172,7 @@ function App() {
                 onClose={() => setSelectedPoint(null)}
                 theme={theme}
                 currentUser={user}
+                onNavigateToProfile={navigateToProfile}
               />
             )}
           </>

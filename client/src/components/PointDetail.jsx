@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, X, MessageSquare, Send } from 'lucide-react';
 
-export default function PointDetail({ point, onClose, theme, currentUser }) {
+export default function PointDetail({ point, onClose, theme, currentUser, onNavigateToProfile }) {
   console.log("Rendering PointDetail, point:", point, "currentUser:", currentUser);
   const [userRating, setUserRating] = useState(0);
   const [averageRating, setAverageRating] = useState(point.rating || 0);
@@ -110,6 +110,23 @@ export default function PointDetail({ point, onClose, theme, currentUser }) {
             {(point.tags || []).map(tag => (
               <span key={tag} className="tag-badge">{tag}</span>
             ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+            <span style={{ color: 'var(--placeholder-color)' }}>Por:</span>
+            <button 
+              onClick={() => point.username && onNavigateToProfile(point.username)}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                padding: 0, 
+                color: '#38bdf8', 
+                fontWeight: 'bold', 
+                cursor: point.username ? 'pointer' : 'default',
+                textDecoration: point.username ? 'underline' : 'none'
+              }}
+            >
+              {point.username ? `@${point.username}` : 'Anónimo'}
+            </button>
           </div>
         </div>
 
