@@ -10,8 +10,8 @@ sudo docker build -t pescadia-server:latest -t pescadia-server:v2 ./server
 sudo docker save pescadia-server:latest pescadia-server:v2 | sudo k3s ctr -n k8s.io images import -
 
 echo "3/4: Compilando e importando Cliente (Frontend)..."
-sudo docker build -t frontend:latest -t frontend:v2 ./client
-sudo docker save frontend:latest frontend:v2 | sudo k3s ctr -n k8s.io images import -
+sudo docker build -t pescadia-client:latest -t pescadia-client:v2 ./client
+sudo docker save pescadia-client:latest pescadia-client:v2 | sudo k3s ctr -n k8s.io images import -
 
 echo "4/4: Reiniciando servicios en Kubernetes..."
 sudo kubectl rollout restart statefulset contenedor-server
