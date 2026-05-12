@@ -461,7 +461,7 @@ app.get('/api/capturas/:id/detalles', async (req, res) => {
     const { current_user_id } = req.query;
 
     const comentariosResult = await pool.query(`
-      SELECT c.id, c.texto, c.created_at, u.username as user
+      SELECT c.id, c.texto, c.created_at, u.username
       FROM comentarios c
       JOIN usuarios u ON c.user_id = u.id
       WHERE c.captura_id = $1
