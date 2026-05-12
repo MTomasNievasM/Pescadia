@@ -131,7 +131,7 @@ function App() {
                 />
             )}
             {activeTab === 'history' && (
-              <HistoryList theme={theme} onNavigateToProfile={navigateToProfile} />
+              <HistoryList theme={theme} onNavigateToProfile={navigateToProfile} onSelectPoint={setSelectedPoint} />
             )}
             {activeTab === 'profile' && (
               <Profile 

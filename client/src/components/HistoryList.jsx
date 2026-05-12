@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, MapPin, Calendar, Tag, Fish, Eye } from 'lucide-react';
 
-export default function HistoryList({ theme, onNavigateToProfile }) {
+export default function HistoryList({ theme, onNavigateToProfile, onSelectPoint }) {
   const [captures, setCaptures] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,7 +63,7 @@ export default function HistoryList({ theme, onNavigateToProfile }) {
               background: '#000'
             }}>
               <img
-                src={capture.image || "https://images.unsplash.com/photo-1599058917210-9285702dfab3?auto=format&fit=crop&q=80&w=200"}
+                src={capture.photo_url ? `${window.location.origin}/api${capture.photo_url}` : "https://images.unsplash.com/photo-1599058917210-9285702dfab3?auto=format&fit=crop&q=80&w=200"}
                 alt={capture.species}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -101,7 +101,11 @@ export default function HistoryList({ theme, onNavigateToProfile }) {
               </div>
 
               <div style={{ marginTop: '0.25rem' }}>
-                <button className="action-btn" style={{ color: '#38bdf8', fontSize: '0.8rem', fontWeight: '700', padding: 0 }}>
+                <button 
+                  className="action-btn" 
+                  style={{ color: '#38bdf8', fontSize: '0.8rem', fontWeight: '700', padding: 0 }}
+                  onClick={() => onSelectPoint && onSelectPoint(capture)}
+                >
                   Ver pesca
                 </button>
               </div>

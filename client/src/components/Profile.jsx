@@ -598,10 +598,10 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout }
                     boxShadow: '0 4px 15px var(--shadow-color)'
                   }}>
                     {/* Imagen de la publicación - Condicional */}
-                    {capture.image && (
+                    {capture.photo_url && (
                       <div className="post-image" style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
                         <img
-                          src={capture.image}
+                          src={`${window.location.origin}/api${capture.photo_url}`}
                           alt={capture.species}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
