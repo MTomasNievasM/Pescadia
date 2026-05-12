@@ -380,9 +380,14 @@ app.get('/api/capturas/:id/detalles', async (req, res) => {
     `, [id]);
 
     const mediaResult = await pool.query(`
-      SELECT AVG(puntuacion) as media FROM valoraciones WHERE captura_id = $1
+      SELECT AVG(puntuacion) as media FROM valoraciones WHERE captura_id = $1::integer
     `, [id]);
     
+    console.log(`Detalles para captura ${id}:`, {
+      rows: comentariosResult.rows.length,
+      media: mediaResult.rows[0].media
+    });
+
     let tu_valoracion = 0;
     if (current_user_id) {
       const miValoracionResult = await pool.query(`
