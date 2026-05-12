@@ -401,6 +401,7 @@ app.get('/api/capturas', async (req, res) => {
       }));
       res.json(rows);
     } catch (dbErr) {
+      console.error("Error en query de capturas:", dbErr);
       // Si falla la DB, devolvemos lo que hay en memoria
       res.json(memoriaCapturas);
     }
