@@ -75,7 +75,7 @@ export default function MapComponent({ markers: initialMarkers = [], activeTagFi
                       Sin foto
                     </div>
                   )}
-                  <strong style={{ fontSize: '0.9rem' }}>Zona de Pesca</strong>
+                  <strong style={{ fontSize: '0.9rem' }}>{marker.titulo || 'Zona de Pesca'}</strong>
                   <p style={{ margin: '0.25rem 0', fontSize: '0.8rem' }}>Especies: {(marker.tags || []).join(', ')}</p>
                   <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#fbbf24', fontSize: '1rem' }}>
                     {'★'.repeat(Math.round(Number(marker.average_rating) || marker.rating))}{'☆'.repeat(5 - Math.round(Number(marker.average_rating) || marker.rating))}

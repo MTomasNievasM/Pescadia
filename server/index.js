@@ -17,7 +17,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 
 // Servir la carpeta de subidas como estática para poder ver las fotos
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Asegurar que la carpeta uploads existe
 const uploadDir = path.join(__dirname, 'uploads');
