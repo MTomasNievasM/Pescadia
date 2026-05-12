@@ -89,9 +89,18 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
     fetch(`/api/capturas?user_id=${currentUser?.id || ''}`)
       .then(res => res.json())
       .then(data => {
-        // Filtrar capturas por usuario
         const userCaptures = data.filter(c => c.username === usernameToFetch.replace('@', ''));
-        setCaptures(userCaptures);
+        const mappedCaptures = userCaptures.map(cap => ({
+          ...cap,
+          commentsList: Array.isArray(cap.commentsList) ? cap.commentsList.map(c => ({
+            id: c.id,
+            author: c.username,
+            text: c.texto,
+            created_at: c.created_at,
+            replies: []
+          })) : []
+        }));
+        setCaptures(mappedCaptures);
         setLoadingCaptures(false);
       })
       .catch(() => {
@@ -319,15 +328,36 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
     setNewComment('');
   };
 
-  const handleQuickComment = (e, captureId) => {
+  const handleQuickComment = async (e, captureId) => {
     e.preventDefault();
     const text = quickComment[captureId];
     if (!text?.trim()) return;
-    const newC = { id: Date.now(), author: profileData.name, text, replies: [] };
-    setCaptures(captures.map(cap =>
-      cap.id === captureId ? { ...cap, commentsList: [...(cap.commentsList || []), newC] } : cap
-    ));
-    setQuickComment({ ...quickComment, [captureId]: '' });
+    if (!currentUser) return alert('Debes iniciar sesión para comentar.');
+
+    try {
+      const res = await fetch(`/api/capturas/${captureId}/comentarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: currentUser.id, texto: text.trim() })
+      });
+      if (res.ok) {
+        const nuevo = await res.json();
+        const newC = { 
+          id: nuevo.id, 
+          author: nuevo.username, 
+          text: nuevo.texto, 
+          created_at: nuevo.created_at,
+          replies: [] 
+        };
+        
+        setCaptures(captures.map(cap =>
+          cap.id === captureId ? { ...cap, commentsList: [...(cap.commentsList || []), newC] } : cap
+        ));
+        setQuickComment({ ...quickComment, [captureId]: '' });
+      }
+    } catch (err) {
+      console.error("Error al comentar:", err);
+    }
   };
 
   const handleReply = (captureId, commentId) => {
