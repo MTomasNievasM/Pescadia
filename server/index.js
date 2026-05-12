@@ -347,7 +347,7 @@ app.get('/api/capturas', async (req, res) => {
   try {
     try {
       const result = await pool.query(`
-        SELECT c.*, u.username, COALESCE(AVG(v.puntuacion), 0) as average_rating
+        SELECT c.*, u.username, COALESCE(AVG(v.puntuacion), 0)::float as average_rating
         FROM capturas c 
         LEFT JOIN usuarios u ON c.user_id = u.id 
         LEFT JOIN valoraciones v ON c.id = v.captura_id
