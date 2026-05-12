@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Star, X, MessageSquare, Send } from 'lucide-react';
 
 export default function PointDetail({ point, onClose, theme, currentUser }) {
+  console.log("Rendering PointDetail, point:", point, "currentUser:", currentUser);
   const [userRating, setUserRating] = useState(0);
   const [averageRating, setAverageRating] = useState(point.rating || 0);
   const [commentInput, setCommentInput] = useState('');
@@ -118,7 +119,7 @@ export default function PointDetail({ point, onClose, theme, currentUser }) {
           <div style={{ color: '#fbbf24', fontSize: '1.5rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {averageRating > 0 ? (
               <>
-                <span>{averageRating.toFixed(1)}</span>
+                <span>{Number(averageRating).toFixed(1)}</span>
                 <span style={{ fontSize: '1.2rem' }}>★</span>
               </>
             ) : (
