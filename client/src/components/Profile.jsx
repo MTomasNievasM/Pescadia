@@ -618,7 +618,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
                             }}>
-                              {reply.author.charAt(0).toUpperCase()}
+                              {(reply.author || '?').charAt(0).toUpperCase()}
                             </div>
                             <div style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
                               <span style={{ fontWeight: '700', color: 'var(--text-color)', marginRight: '0.35rem' }}>{reply.author}</span>
@@ -749,7 +749,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
                                   }}>
-                                    {c.author.charAt(0).toUpperCase()}
+                                    {(c.author || '?').charAt(0).toUpperCase()}
                                   </div>
                                   <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -783,7 +783,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                                           fontSize: '0.55rem', fontWeight: '700', color: '#fff', flexShrink: 0
                                         }}>
-                                          {r.author.charAt(0).toUpperCase()}
+                                          {(r.author || '?').charAt(0).toUpperCase()}
                                         </div>
                                         <div style={{ fontSize: '0.78rem', lineHeight: '1.4' }}>
                                           <span 
@@ -835,7 +835,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
                           }}>
-                            {profileData.name.charAt(0).toUpperCase()}
+                            {(profileData.name || '?').charAt(0).toUpperCase()}
                           </div>
                           <input
                             type="text"
@@ -896,7 +896,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '0.7rem', fontWeight: '700', color: '#fff', flexShrink: 0
                       }}>
-                        {c.author.charAt(0).toUpperCase()}
+                        {(c.author || '?').charAt(0).toUpperCase()}
                       </div>
                       <div style={{ background: 'var(--btn-bg)', borderRadius: '0.75rem', padding: '0.5rem 0.75rem', flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
@@ -925,7 +925,7 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: '0.6rem', fontWeight: '700', color: '#fff', flexShrink: 0
                             }}>
-                              {r.author.charAt(0).toUpperCase()}
+                              {(r.author || '?').charAt(0).toUpperCase()}
                             </div>
                             <div style={{ background: 'var(--btn-bg)', borderRadius: '0.75rem', padding: '0.4rem 0.65rem', flex: 1 }}>
                               <span style={{ fontWeight: '700', color: 'var(--text-color)', fontSize: '0.8rem', display: 'block', marginBottom: '0.1rem' }}>{r.author}</span>
