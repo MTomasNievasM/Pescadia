@@ -65,7 +65,7 @@ export default function HistoryList({ theme, onNavigateToProfile, onSelectPoint,
               background: '#000'
             }}>
               <img
-                src={capture.photo_url ? `${window.location.origin}/api${capture.photo_url}` : "https://images.unsplash.com/photo-1599058917210-9285702dfab3?auto=format&fit=crop&q=80&w=200"}
+                src={(capture.photo_url && capture.photo_url.trim() !== '') ? `${window.location.origin}/api${capture.photo_url}` : "https://images.unsplash.com/photo-1599058917210-9285702dfab3?auto=format&fit=crop&q=80&w=200"}
                 alt={capture.species}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />

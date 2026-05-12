@@ -427,7 +427,7 @@ app.get('/api/feed', async (req, res) => {
       JOIN usuarios u ON c.user_id = u.id
       WHERE c.user_id IN (
         SELECT seguido_id FROM seguidores WHERE seguidor_id = $1
-      ) OR c.user_id = $1
+      )
       ORDER BY c.created_at DESC
     `, [user_id]);
 
