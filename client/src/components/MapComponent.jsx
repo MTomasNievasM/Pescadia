@@ -66,7 +66,7 @@ export default function MapComponent({ markers: initialMarkers = [], activeTagFi
                 <div className="map-popup-content" style={{ minWidth: '150px' }}>
                   {marker.photo_url ? (
                     <img 
-                      src={`/api${marker.photo_url}`} 
+                      src={`${window.location.origin}/api${marker.photo_url}`} 
                       alt="Última captura" 
                       style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '0.5rem', marginBottom: '0.5rem' }} 
                     />
