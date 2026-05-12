@@ -289,11 +289,6 @@ export default function Profile({ theme, currentUser, targetUsername, onLogout, 
       })
     );
   };
-  const handleLike = (id) => {
-    setCaptures(captures.map(c =>
-      c.id === id ? { ...c, liked: !c.liked, likes: c.liked ? c.likes - 1 : c.likes + 1 } : c
-    ));
-  };
 
   const handleShare = async (capture) => {
     const shareData = {
