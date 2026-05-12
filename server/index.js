@@ -405,6 +405,7 @@ app.get('/api/capturas', async (req, res) => {
         ...row,
         commentsList: Array.isArray(row.commentsList) ? row.commentsList : (typeof row.commentsList === 'string' ? JSON.parse(row.commentsList) : [])
       }));
+      console.log(`[CAPTURAS] Devueltas ${result.rows.length} filas`);
       res.json(rows);
     } catch (dbErr) {
       console.error("Error en query de capturas:", dbErr);
